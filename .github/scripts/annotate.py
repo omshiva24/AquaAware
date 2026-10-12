@@ -66,6 +66,46 @@ def exception_blocks(lines):
     return out
 
 
+PROJECT_LOCATION = re.compile(r'(?:AquaAware/(?:lib|test)/|package:aquaaware/)[^\s)]+\.dart:\d+(?::\d+)?')
+
+
+def traced_errors(lines):
+    """Compact summary of errors the smoke test prints the moment they happen
+    (AQUA-ERROR-BEGIN … END), each with the screen being visited and the
+    project file and line that caused it. Shown first, so nothing is cut off."""
+    out, seen = [], set()
+    visit, block = '', None
+    for line in lines:
+        if 'AQUA-VISIT ' in line:
+            visit = line.split('AQUA-VISIT ', 1)[1].strip()
+        elif 'AQUA-ERROR-BEGIN' in line:
+            block = []
+        elif 'AQUA-ERROR-END' in line and block is not None:
+            text = [l.strip() for l in block if l.strip()]
+            summary = next((l for l in text if not l.startswith(('══', '#'))
+                            and 'was thrown' not in l and 'EXCEPTION CAUGHT' not in l), '?')
+            places = []
+            for l in text:
+                for m in PROJECT_LOCATION.findall(l):
+                    loc = m.split('AquaAware/', 1)[-1]
+                    if loc not in places:
+                        places.append(loc)
+            constraints = next((l for l in text if l.startswith('constraints:')), '')
+            entry = f'{visit or "(setup)"}: {summary}'
+            if places:
+                entry += '\n    at ' + '\n    at '.join(places[:4])
+            if constraints:
+                entry += '\n    ' + constraints
+            key = (summary, tuple(places[:2]))
+            if key not in seen:
+                seen.add(key)
+                out.append(entry)
+            block = None
+        elif block is not None:
+            block.append(line)
+    return ['Errors as they happened (screen: error, then where):\n\n' + '\n\n'.join(out)] if out else []
+
+
 def error_lines(lines):
     """Compiler and tool errors with a little context."""
     hits = []
@@ -104,7 +144,7 @@ def main():
     except OSError as e:
         emit(label, f'Could not read {path}: {e}')
         return
-    found = (exception_blocks(lines) + test_failures(lines)) if mode == 'tests' else error_lines(lines)
+    found = (traced_errors(lines) + test_failures(lines) + exception_blocks(lines)) if mode == 'tests' else error_lines(lines)
     if not found:
         found = ['\n'.join(lines[-120:])]
     parts = chunk(found)

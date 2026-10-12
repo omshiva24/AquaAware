@@ -45,6 +45,18 @@ const _paths = <Role, List<String>>{
   Role.manager: ['/manager', '/manager/directory', '/manager/map', '/security'],
 };
 
+/// Prints each framework error in full the moment it happens, while the
+/// widget tree still exists, so the report names the widget and the file and
+/// line that caused it. The test framework still records the error as usual
+/// (and restores its own handler after every test).
+void _traceErrors() {
+  final previous = FlutterError.onError;
+  FlutterError.onError = (details) {
+    debugPrint('AQUA-ERROR-BEGIN\n${details.toString()}\nAQUA-ERROR-END');
+    previous?.call(details);
+  };
+}
+
 void main() {
   setUp(() {
     FlutterSecureStorage.setMockInitialValues(<String, String>{});
@@ -61,6 +73,7 @@ void main() {
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
+    _traceErrors();
     final services = (await tester.runAsync(() => AppServices.bootstrap(startSensors: false)))!;
     await tester.pumpWidget(AquaAwareApp(services: services));
     await settle(tester);
@@ -81,12 +94,18 @@ void main() {
     await settle(tester);
   }
 
+  /// Opens every screen for [role] and reports all problems at once, so one
+  /// run shows every screen that needs fixing.
   Future<void> visitAll(WidgetTester tester, Role role) async {
+    final problems = <String>[];
     for (final path in _paths[role]!) {
+      debugPrint('AQUA-VISIT $path as ${role.label}');
       GoRouter.of(tester.element(find.byType(Scaffold).first)).go(path);
       await settle(tester);
-      expect(tester.takeException(), isNull, reason: '$path as ${role.label}');
+      final error = tester.takeException();
+      if (error != null) problems.add('$path as ${role.label}: $error');
     }
+    expect(problems, isEmpty, reason: problems.join('\n'));
   }
 
   Future<void> signOut(WidgetTester tester, AppServices s) async {
@@ -164,7 +183,10 @@ void main() {
     await signIn(tester, s, Role.educator);
     GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/educator/class');
     await settle(tester);
-    await tester.tap(find.text('Pranil').first);
+    // The class list is alphabetical and long; search, as an educator would.
+    await tester.enterText(find.byType(TextField).first, 'Pranil');
+    await settle(tester);
+    await tester.tap(find.widgetWithText(ListTile, 'Pranil').first);
     await settle(tester);
     expect(find.text('Message in AquaAware'), findsOneWidget);
     expect(tester.takeException(), isNull);

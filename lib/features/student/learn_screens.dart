@@ -365,17 +365,26 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      OutlinedButton.icon(
-                        onPressed: _index == 0 ? null : () => _goTo(_index - 1),
-                        icon: const Icon(Icons.arrow_back),
-                        label: const Text('Back'),
+                      Flexible(
+                        child: OutlinedButton.icon(
+                          onPressed: _index == 0 ? null : () => _goTo(_index - 1),
+                          icon: const Icon(Icons.arrow_back),
+                          label: const Text('Back'),
+                        ),
                       ),
-                      Expanded(child: Center(child: Text('${_index + 1} / $n', style: text.labelLarge))),
-                      FilledButton.icon(
-                        onPressed: last ? _finish : () => _goTo(_index + 1),
-                        icon: Icon(last ? Icons.quiz_outlined : Icons.arrow_forward),
-                        label: Text(last ? 'Finish and quiz' : 'Next'),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text('${_index + 1} / $n', style: text.labelLarge),
+                      ),
+                      Flexible(
+                        flex: 2,
+                        child: FilledButton.icon(
+                          onPressed: last ? _finish : () => _goTo(_index + 1),
+                          icon: Icon(last ? Icons.quiz_outlined : Icons.arrow_forward),
+                          label: Text(last ? 'Finish and quiz' : 'Next'),
+                        ),
                       ),
                     ],
                   ),

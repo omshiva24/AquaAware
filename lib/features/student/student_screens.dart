@@ -116,8 +116,7 @@ class _ReservoirContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Your reservoir', style: text.labelLarge?.copyWith(color: soft)),
-              const Spacer(),
+              Expanded(child: Text('Your reservoir', style: text.labelLarge?.copyWith(color: soft))),
               if (streak > 0)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -127,7 +126,10 @@ class _ReservoirContent extends StatelessWidget {
                     children: [
                       const Icon(Icons.local_fire_department_outlined, size: 16, color: AqColors.ochre),
                       const SizedBox(width: 4),
-                      Text('$streak-day streak', style: text.labelMedium?.copyWith(color: white)),
+                      Flexible(
+                        child: Text('$streak-day streak',
+                            style: text.labelMedium?.copyWith(color: white), overflow: TextOverflow.ellipsis),
+                      ),
                     ],
                   ),
                 ),
@@ -375,9 +377,15 @@ class _WaterMeterCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${r.usedLitres} L', style: text.headlineMedium),
-              Text('  of ${r.targetLitres} L target', style: text.bodyMedium),
-              const Spacer(),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: '${r.usedLitres} L', style: text.headlineMedium),
+                    TextSpan(text: '  of ${r.targetLitres} L target', style: text.bodyMedium),
+                  ]),
+                ),
+              ),
+              const SizedBox(width: 8),
               Pill(r.underTarget ? 'On track' : 'Over target',
                   tone: r.underTarget ? Tone.success : Tone.warning,
                   icon: r.underTarget ? Icons.check : Icons.warning_amber_rounded),
@@ -775,8 +783,31 @@ class _RewardTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final can = available >= reward.points;
     final frac = (available / reward.points).clamp(0.0, 1.0);
+    // The button sits under the text, not beside it, so names, the progress
+    // bar and the points never get squeezed on narrow phones or large text.
+    final Widget action = can
+        ? BusyButton(
+            // BusyButton ignores repeat taps, so a double tap can't
+            // create two claims and reserve the points twice.
+            label: 'Claim',
+            busyLabel: 'Signing…',
+            expand: false,
+            onPressed: () async {
+              try {
+                final c = await context.services.store.createClaim(student: user, reward: reward);
+                if (context.mounted) await context.push('/claim/${c.id}');
+              } on ActionRefused catch (e) {
+                if (context.mounted) context.toast(e.message, error: true);
+              }
+            },
+          )
+        : Tooltip(
+            message: '${reward.points - available} more points needed',
+            child: const OutlinedButton(onPressed: null, child: Text('Claim')),
+          );
     return Panel(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 52,
@@ -804,35 +835,23 @@ class _RewardTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        Text('${reward.points} pts', style: text.labelLarge?.copyWith(color: scheme.onSecondaryContainer)),
+                        Flexible(
+                          child: Text(
+                            '${reward.points} pts',
+                            style: text.labelLarge?.copyWith(color: scheme.onSecondaryContainer),
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                Align(alignment: AlignmentDirectional.centerEnd, child: action),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          can
-              ? BusyButton(
-                  // BusyButton ignores repeat taps, so a double tap can't
-                  // create two claims and reserve the points twice.
-                  label: 'Claim',
-                  busyLabel: 'Signing…',
-                  expand: false,
-                  onPressed: () async {
-                    try {
-                      final c = await context.services.store.createClaim(student: user, reward: reward);
-                      if (context.mounted) await context.push('/claim/${c.id}');
-                    } on ActionRefused catch (e) {
-                      if (context.mounted) context.toast(e.message, error: true);
-                    }
-                  },
-                )
-              : Tooltip(
-                  message: '${reward.points - available} more points needed',
-                  child: const OutlinedButton(onPressed: null, child: Text('Claim')),
-                ),
         ],
       ),
     );

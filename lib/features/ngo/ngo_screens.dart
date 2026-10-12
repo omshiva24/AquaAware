@@ -748,8 +748,10 @@ class _CheckinCodeSheetState extends State<_CheckinCodeSheet> {
                           const SizedBox(width: 10),
                           AnimatedCount(value: count, style: text.headlineMedium?.copyWith(color: scheme.onTertiaryContainer)),
                           const SizedBox(width: 8),
-                          Text(count == 1 ? 'student checked in' : 'students checked in',
-                              style: text.titleMedium?.copyWith(color: scheme.onTertiaryContainer)),
+                          Flexible(
+                            child: Text(count == 1 ? 'student checked in' : 'students checked in',
+                                style: text.titleMedium?.copyWith(color: scheme.onTertiaryContainer)),
+                          ),
                         ],
                       ),
                     ),

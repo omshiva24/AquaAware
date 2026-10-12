@@ -224,7 +224,13 @@ class Pill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 15, color: c.fg), const SizedBox(width: 5)],
-          Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c.fg, fontWeight: FontWeight.w700)),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(color: c.fg, fontWeight: FontWeight.w700),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -295,7 +301,7 @@ class _BusyButtonState extends State<BusyButton> {
             children: [
               const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4)),
               const SizedBox(width: 12),
-              Text(widget.busyLabel ?? 'Working…'),
+              Flexible(child: Text(widget.busyLabel ?? 'Working…', overflow: TextOverflow.ellipsis)),
             ],
           )
         : Row(

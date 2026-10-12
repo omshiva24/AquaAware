@@ -176,13 +176,22 @@ class _AnnouncementProgress extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (a.senderRole == Role.ngo)
-                const Pill('From NGO', tone: Tone.success, icon: Icons.volunteer_activism_outlined)
-              else
-                const Pill('Your class', tone: Tone.info),
-              if (a.urgent) ...[const SizedBox(width: 6), const Pill('Urgent', tone: Tone.danger)],
-              const Spacer(),
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (a.senderRole == Role.ngo)
+                      const Pill('From NGO', tone: Tone.success, icon: Icons.volunteer_activism_outlined)
+                    else
+                      const Pill('Your class', tone: Tone.info),
+                    if (a.urgent) const Pill('Urgent', tone: Tone.danger),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(Fmt.relative(a.sentAt), style: text.bodySmall),
             ],
           ),

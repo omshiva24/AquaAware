@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,7 +45,12 @@ jobs:
           dart run tool/configure_platforms.dart
       - run: flutter pub get
       - name: Build
-        run: flutter build apk --release
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee -a build-output.txt
+      - name: Report build errors
+        if: failure()
+        run: python3 .github/scripts/annotate.py errors build-output.txt "Android build"
       - name: Name the file
         run: cp build/app/outputs/flutter-apk/app-release.apk AquaAware-android.apk
       - uses: actions/upload-artifact@v4
@@ -58,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install build tools
         run: |
           sudo apt-get update
@@ -74,7 +79,12 @@ jobs:
           dart run tool/configure_platforms.dart
       - run: flutter pub get
       - name: Build
-        run: flutter build linux --release
+        run: |
+          set -o pipefail
+          flutter build linux --release 2>&1 | tee -a build-output.txt
+      - name: Report build errors
+        if: failure()
+        run: python3 .github/scripts/annotate.py errors build-output.txt "Linux build"
       - name: Package
         run: tar -czf AquaAware-linux-x64.tar.gz -C build/linux/x64/release/bundle .
       - uses: actions/upload-artifact@v4
@@ -87,7 +97,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -99,7 +109,14 @@ jobs:
           dart run tool/configure_platforms.dart
       - run: flutter pub get
       - name: Build
-        run: flutter build windows --release
+        shell: pwsh
+        run: |
+          flutter build windows --release 2>&1 | Tee-Object -FilePath build-output.txt -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Report build errors
+        if: failure()
+        shell: pwsh
+        run: python .github/scripts/annotate.py errors build-output.txt "Windows build"
       - name: Package
         shell: pwsh
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath AquaAware-windows-x64.zip
@@ -113,7 +130,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -124,9 +141,16 @@ jobs:
           dart run tool/configure_platforms.dart
       - run: flutter pub get
       - name: Build macOS
-        run: flutter build macos --release
+        run: |
+          set -o pipefail
+          flutter build macos --release 2>&1 | tee -a build-output.txt
       - name: Build iOS (no signing, compile check only)
-        run: flutter build ios --release --no-codesign
+        run: |
+          set -o pipefail
+          flutter build ios --release --no-codesign 2>&1 | tee -a build-output.txt
+      - name: Report build errors
+        if: failure()
+        run: python3 .github/scripts/annotate.py errors build-output.txt "Apple build"
       - name: Package macOS
         run: ditto -c -k --keepParent build/macos/Build/Products/Release/aquaaware.app AquaAware-macos.zip
       - uses: actions/upload-artifact@v4

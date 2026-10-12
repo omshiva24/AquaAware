@@ -1,0 +1,67 @@
+# Builds the web version and publishes it on GitHub Pages:
+#   https://<owner>.github.io/<repository>/
+# Runs on every push to main. The app works fully offline in the browser;
+# no server is needed for the demo.
+name: Deploy web app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build web
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create and configure the web folder
+        run: |
+          flutter create . --project-name aquaaware --org org.aquaaware --platforms web
+          dart run tool/configure_platforms.dart
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+      - name: Prepare for GitHub Pages
+        run: |
+          # Unknown paths fall back to the app instead of GitHub's 404 page.
+          cp build/web/index.html build/web/404.html
+          # Serve files as they are (Jekyll would skip some of them).
+          touch build/web/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

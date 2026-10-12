@@ -377,6 +377,20 @@ void _desktopTitles() {
   if (Directory('windows').existsSync()) {
     _section('Windows');
     _patch('windows/runner/main.cpp', 'Window title', (src) => src.replaceAll('L"aquaaware"', 'L"$_appName"'));
+    // Visual Studio 2026 (MSVC 14.5x) turns the deprecated <experimental/coroutine>
+    // header that local_auth_windows still uses into a hard error (STL1011).
+    // Microsoft's documented switch keeps it building until the plugin moves
+    // to C++20 coroutines. Plugins inherit definitions made here.
+    _patch('windows/CMakeLists.txt', 'Allow local_auth_windows to build with Visual Studio 2026', (cmake) {
+      const flag = '_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS';
+      if (cmake.contains(flag)) return cmake;
+      return cmake.replaceFirst(
+        'add_definitions(-DUNICODE -D_UNICODE)',
+        'add_definitions(-DUNICODE -D_UNICODE)\n'
+            '# AquaAware: local_auth_windows uses <experimental/coroutine>, an error in MSVC 14.5x.\n'
+            'add_definitions(-D$flag)',
+      );
+    });
   }
   if (Directory('linux').existsSync()) {
     _section('Linux');

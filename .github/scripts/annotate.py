@@ -39,6 +39,33 @@ def test_failures(lines):
     return ['\n'.join(b) for b in blocks]
 
 
+def exception_blocks(lines):
+    """Flutter's framed exception reports: '══╡ EXCEPTION CAUGHT BY … ╞══' to the closing rule."""
+    blocks, current = [], None
+    for line in lines:
+        if 'EXCEPTION CAUGHT BY' in line:
+            if current:
+                blocks.append(current)
+            current = [line.strip()]
+            continue
+        if current is not None:
+            if line.startswith('════') and len(current) > 1:
+                blocks.append(current)
+                current = None
+            elif len(current) < 30:
+                current.append(line.rstrip())
+    if current:
+        blocks.append(current)
+    # Same exception repeated (e.g. every frame): keep the first of each kind.
+    seen, out = set(), []
+    for b in blocks:
+        key = '\n'.join(b[:4])
+        if key not in seen:
+            seen.add(key)
+            out.append('\n'.join(b))
+    return out
+
+
 def error_lines(lines):
     """Compiler and tool errors with a little context."""
     hits = []
@@ -77,7 +104,7 @@ def main():
     except OSError as e:
         emit(label, f'Could not read {path}: {e}')
         return
-    found = test_failures(lines) if mode == 'tests' else error_lines(lines)
+    found = (exception_blocks(lines) + test_failures(lines)) if mode == 'tests' else error_lines(lines)
     if not found:
         found = ['\n'.join(lines[-120:])]
     parts = chunk(found)

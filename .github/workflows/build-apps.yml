@@ -12,6 +12,10 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  # Publishing a release on GitHub (Releases → Draft a new release) also
+  # builds every platform and attaches the files to it.
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -170,12 +174,20 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      - name: Create the release
+      - name: Create the release, or add the files to it if it exists
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+          NOTES: >-
+            Test builds of AquaAware for Android, Windows, macOS and Linux.
+            The web version runs at https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+            and the README lists the demo accounts.
+            Android: allow installing from unknown sources.
+            macOS: right-click the app and choose Open the first time.
         run: |
-          gh release create "$TAG" dist/* \
-            --repo "${{ github.repository }}" \
-            --title "AquaAware $TAG" \
-            --notes "Test builds of AquaAware $TAG for Android, Windows, macOS and Linux. The web version runs at https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/ — see the README for demo accounts. Android: allow installing from unknown sources. macOS: right-click the app and choose Open the first time."
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --repo "$REPO" --clobber
+          else
+            gh release create "$TAG" dist/* --repo "$REPO" --title "AquaAware $TAG" --notes "$NOTES"
+          fi

@@ -144,7 +144,7 @@ Three GitHub Actions workflows run on every push to `main`:
 | **Deploy web app** (`deploy-web.yml`) | Builds the web version and publishes it on GitHub Pages |
 | **Build apps** (`build-apps.yml`) | Builds Android (APK), Windows, macOS and Linux, and compiles iOS as a check. The builds can be downloaded from the workflow run |
 
-To publish a release with downloadable apps, push a version tag:
+To publish a release with downloadable apps, open **Releases → Draft a new release** on GitHub, type a new tag such as `v2.0.1`, and choose **Publish release**. About 15 minutes later the Android, Windows, macOS and Linux builds are attached to it automatically. Pushing a tag from the command line does the same:
 
 ```bash
 git tag v2.0.1

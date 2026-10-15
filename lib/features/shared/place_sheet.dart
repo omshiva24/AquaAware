@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -24,7 +28,7 @@ List<MapPlace> communityPlaces(AppStore store, {String? ownNgoId}) => [
           statusTone: store.collectorBusy(c) ? Tone.danger : Tone.success,
         ),
       for (final sc in CommunitySeed.schools)
-        MapPlace(id: sc.id, name: sc.name, subtitle: 'School', point: sc.location, kind: PlaceKind.school),
+        MapPlace(id: sc.id, name: sc.name, subtitle: sc.type, point: sc.location, kind: PlaceKind.school),
       for (final n in CommunitySeed.ngos)
         MapPlace(
           id: n.id,

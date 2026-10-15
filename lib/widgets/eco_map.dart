@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' show LatLng;
@@ -10,7 +14,7 @@ import 'common.dart';
 
 enum PlaceKind {
   collector('Collectors', Icons.recycling),
-  school('Schools', Icons.school_outlined),
+  school('Schools, colleges and offices', Icons.school_outlined),
   ngo('NGOs', Icons.volunteer_activism_outlined);
 
   const PlaceKind(this.label, this.icon);

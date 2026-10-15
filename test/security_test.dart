@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:convert';
 
 import 'package:aquaaware/core/security/crypto_service.dart';
@@ -36,6 +40,8 @@ void main() {
       const demo = {
         'kavitha@aquaaware.org': 'Kavitha#2026',
         'rajan@aquaaware.org': 'Rajan#2026',
+        'anitha@aquaaware.org': 'Anitha#2026',
+        'deepa@aquaaware.org': 'Deepa#2026',
         'admin@aquaaware.org': 'Manager#2026!',
         'NGO001': 'PSF-GREEN-2026',
         'NGO002': 'CEAD-GREEN-2026',

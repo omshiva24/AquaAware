@@ -1,3 +1,6 @@
+# Copyright (c) 2026 P Om Shiva. All rights reserved.
+# AquaAware: unauthorised copying, modification or distribution of this file,
+# by any means, is prohibited without the author's written permission. See LICENSE.
 # Builds the app for every platform so each one is known to compile.
 # - On every push to main: builds are kept as downloadable workflow artifacts.
 # - On a version tag (for example v2.0.0): the builds are also attached to a

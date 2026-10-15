@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 // Generated from lib/data/seed/community_seed.dart so the app and the server
 // share the same pilot accounts. Secrets are stored as PBKDF2-SHA256 hashes only.
 
@@ -13,6 +16,20 @@ export const classes = [
     "school": "St. Joseph's Higher Secondary School, Pondicherry",
     "educatorId": "EDU002",
     "city": "Pondicherry"
+  },
+  {
+    "code": "AWA-2024-CCAS",
+    "school": "Coastal College of Arts and Science, Pondicherry",
+    "educatorId": "EDU003",
+    "city": "Pondicherry",
+    "kind": "college"
+  },
+  {
+    "code": "AWA-2026-CTP",
+    "school": "Coastline Tech Park – Green Team, Pondicherry",
+    "educatorId": "EDU004",
+    "city": "Pondicherry",
+    "kind": "office"
   }
 ];
 
@@ -32,6 +49,22 @@ export const accounts = [
     "loginId": "rajan@aquaaware.org",
     "secretHash": "pbkdf2-sha256$100000$+xEbtGOOAUrQZ7zBVCnwRQ==$Pr7pMYkdfV7AQ/5nqYJQTZyQgt/rKL64+RxlHs7HSao=",
     "classCode": "AWA-2024-SJH"
+  },
+  {
+    "id": "EDU003",
+    "role": "educator",
+    "name": "Dr. Anitha Raman",
+    "loginId": "anitha@aquaaware.org",
+    "secretHash": "pbkdf2-sha256$100000$pRCc7omjlfZFgRL9iQneuw==$Conl2oqavhhJDvHmPzgwnDS/tCMyNx0tBc1fahUDvj0=",
+    "classCode": "AWA-2024-CCAS"
+  },
+  {
+    "id": "EDU004",
+    "role": "educator",
+    "name": "Ms. Deepa Krishnan",
+    "loginId": "deepa@aquaaware.org",
+    "secretHash": "pbkdf2-sha256$100000$CvDzxt/81jH82EsHrBmyrg==$5ZgqwtCeVgf42g7E5BVRPhH/kqLJUqTBFHS6c7ciLNM=",
+    "classCode": "AWA-2026-CTP"
   },
   {
     "id": "MGR001",
@@ -158,6 +191,46 @@ export const students = [
     "id": "STU015",
     "name": "Nantha Kumar",
     "classCode": "AWA-2024-SJH"
+  },
+  {
+    "id": "STU016",
+    "name": "Kavya",
+    "classCode": "AWA-2024-CCAS"
+  },
+  {
+    "id": "STU017",
+    "name": "Arjun",
+    "classCode": "AWA-2024-CCAS"
+  },
+  {
+    "id": "STU018",
+    "name": "Meera",
+    "classCode": "AWA-2024-CCAS"
+  },
+  {
+    "id": "STU019",
+    "name": "Rahul",
+    "classCode": "AWA-2024-CCAS"
+  },
+  {
+    "id": "STU020",
+    "name": "Ravi",
+    "classCode": "AWA-2026-CTP"
+  },
+  {
+    "id": "STU021",
+    "name": "Sneha",
+    "classCode": "AWA-2026-CTP"
+  },
+  {
+    "id": "STU022",
+    "name": "Karthik",
+    "classCode": "AWA-2026-CTP"
+  },
+  {
+    "id": "STU023",
+    "name": "Fathima",
+    "classCode": "AWA-2026-CTP"
   }
 ];
 
@@ -175,7 +248,7 @@ export const announcements = [
     hoursAgo: 5,
     message:
       'Beach clean-up at Rock Beach this Saturday, 7 am. Bring gloves and a water bottle; we will provide bags. ' +
-      'Mark this done once you have registered with your educator.',
+      'Mark this done once you have registered.',
   },
   {
     id: 'ANN-seed-2',

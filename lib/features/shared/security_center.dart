@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -138,7 +142,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                     ListTile(
                       leading: const Icon(Icons.person_outline),
                       title: Text(u?.name ?? 'Not signed in'),
-                      subtitle: Text(u?.role.label ?? ''),
+                      subtitle: Text(u == null ? '' : roleTitle(u.role, s.store.kindOf(u.classCode))),
                     ),
                     ListTile(
                       leading: const Icon(Icons.timer_outlined),
@@ -242,7 +246,7 @@ class _Explainer extends StatelessWidget {
     (Icons.https_outlined, 'In transit',
         'The app only talks to HTTPS servers (TLS 1.2 or 1.3 through the platform). Each request has an idempotency key so retries never double-count.'),
     (Icons.privacy_tip_outlined, 'Privacy',
-        'Phone numbers are masked until an educator chooses to reveal one. Location and camera are used only when you tap a button that needs them.'),
+        'Phone numbers are masked until a group leader or the admin chooses to reveal one. Location and camera are used only when you tap a button that needs them.'),
   ];
 
   @override

@@ -8,6 +8,22 @@ Version 1 was React Native with Expo. It ran on Android and iOS, but on the web 
 
 Version 2 is **Flutter**. The same code runs on Android, iOS, web, Windows, macOS and Linux. Maps use OpenStreetMap through `flutter_map`, which works on every platform, including the web. Phone-only features (camera scanning, fingerprint unlock, read-aloud) check what the device supports and offer an alternative when it doesn't: for example, typing a ticket code instead of scanning it.
 
+## 1a. For everyone: schools, colleges, offices and communities
+
+Version 1 talked only about schools. Version 2 works for **any group**:
+
+- The sign-in roles are **Student or member**, **Teacher or team lead**, **NGO partner** and **Admin**. Members join with the code their leader gives them.
+- A leader registering a group chooses **School**, **College**, **Office** or **Community**. The group remembers it, and the app's words follow everywhere: a school has a *teacher*, *students* and a *class code*; a college has *faculty*; an office has a *team lead*, *employees* and a *team code*; a community has an *organiser*, *members* and a *group code*. (`InstitutionKind` in `lib/data/models/models.dart`)
+- Behaviour follows the kind too. Schools and colleges hold non-urgent notices during class hours (8 am – 3 pm); offices and communities get them straight away. The daily water bonus opens when the group's day ends (3 pm for schools and colleges, 6 pm otherwise).
+- NGO partners and the admin see each group with its kind and icon, and speak to everyone in neutral words ("people", "members", "groups").
+- Demo groups show each kind: a college class (AWA-2024-CCAS, Dr. Anitha) and an office team (AWA-2026-CTP, team lead Ms. Deepa, employee Ravi). Devices that already had the app keep all their data and simply gain the new groups.
+
+## 1b. Author credit and copyright
+
+- The sign-in screen shows **Created by P Om Shiva · M.Tech CSE (2nd year) · Pondicherry University** to everyone who opens the app, with a link to **Why I made AquaAware**.
+- A new **About AquaAware** page (sign-in screen, account menu and Settings) gives the author, the author's message, who the app is for, and the copyright notice. It opens without signing in.
+- Every source file carries a copyright notice, the repository has a [LICENSE](../LICENSE) that reserves all rights, and the server's package is marked `UNLICENSED` (it used to say MIT, which would have allowed anyone to copy it). The website's page carries author and copyright tags.
+
 ## 2. The look
 
 | Version 1 | Version 2 |
@@ -38,7 +54,7 @@ Each animation tells the user something. All of them stop when the device asks f
 |---|---|
 | Any password worked; anyone could choose Manager | Real accounts with hashed passwords, a lockout after repeated failures, and no self-registration for staff |
 | Educator name made from the email address | Names come from the account |
-| "Register" showed a success message and saved nothing | Students join with name + class code and choose their own 4-digit PIN on the first visit |
+| "Register" showed a success message and saved nothing | Members join with name + their group's code and choose their own 4-digit PIN on the first visit |
 | Fingerprint button said "Demo: please use manual login" | Staff can turn on quick unlock with fingerprint, face or device PIN, which really reopens their session |
 
 ### Students
@@ -75,7 +91,7 @@ Each animation tells the user something. All of them stop when the device asks f
 
 | Version 1 | Version 2 |
 |---|---|
-| Broadcast to everyone | Broadcast to every school or to one school, with completion counts |
+| Broadcast to everyone | Broadcast to every school and college or to one class, with completion counts |
 | "+ Add New Activity" and "Join +10pts" buttons did nothing | Schedule events; each event shows a check-in QR code that changes every 15 minutes, and students earn 10 points for checking in |
 | "Scan QR" opened the student scanner, which accepted any text containing `AQUA_REWARD` | A reward desk that checks the ticket's signature, expiry, single use and the student's balance, then says exactly what to hand over |
 
@@ -86,7 +102,7 @@ Each animation tells the user something. All of them stop when the device asks f
 | Search box that filtered nothing | A searchable directory of students, educators and NGOs |
 | "Alerts: 3" and the activity list were fixed text | Real alerts (ledger integrity, tampered data, lockouts, refused updates, students at risk) and a live audit log |
 | Sign-out left the dashboard on screen | Sign-out returns to the sign-in screen, as it does for every role |
-| | New: move a student to another school without losing points or badges (Q3) |
+| | New: move a student to another class without losing points or badges (Q3) |
 
 ## 5. Bugs fixed from version 1
 
@@ -117,7 +133,7 @@ These are covered in full, in plain words, in:
 |---|---|---|---|
 | Q1 | Adaptive quality | Added `?w=200&blur=1` to the end of image addresses on mobile data | Photos are fetched at one third of the size on mobile data, on small Android screens, or with the *Data saver* setting; lesson pictures are drawn in code, so they cost no data at all |
 | Q2 | Battery and notifications | A low-battery banner; non-urgent notices during class were dropped | Low battery pauses all motion and saves quiz progress after every answer; class-hour notices are held, not lost; the server fans one post out to the right class |
-| Q3 | Points follow the student | A server route that was never called | The ledger is keyed by student; the manager can move a student between schools and everything comes along |
+| Q3 | Points follow the student | A server route that was never called | The ledger is keyed by student; the admin can move a student to another class and everything comes along |
 | Q4 | Smart paging, daily tips | A function that sorted collectors from an empty cache | Only the three nearest free collectors are highlighted and alerted; a different tip each day |
 | Q5 | Reliable delivery (ARQ) | 3 tries against a missing endpoint, then a local copy that was never resent | An encrypted outbox, 3 attempts with back-off, idempotency keys so a resend is never counted twice, and resending on the next launch |
 | Q6 | Data partitioned by class | `schoolId` field in the model | Class codes scope every screen and query; the server checks who may see each announcement and completion |
@@ -126,7 +142,7 @@ These are covered in full, in plain words, in:
 | Q9 | QR anti-replay, SMS fallback | Unkeyed hash, unused generator, scanner accepting any `AQUA_REWARD` text | Signed tickets with a secure 96-bit nonce, expiry and a used-nonce record; an SMS button to collectors that works offline |
 | Q10 | Low-end devices | Lower-resolution image addresses on small Android screens | Small Android screens (narrower than 360 points) are detected live, including after rotation, and get lighter images |
 | Q11 | TLS instead of IPSec | A comment explaining the choice | HTTPS-only sync (TLS 1.2 or 1.3); the server refuses to start in production without TLS or an HTTPS proxy |
-| Q12 | Biometrics and IoT water meter | Biometric demo message; a water card fixed at "280 L / 300 L" | Real biometric quick unlock for staff; a school water meter reading with a daily bonus when the school stays under target |
+| Q12 | Biometrics and IoT water meter | Biometric demo message; a water card fixed at "280 L / 300 L" | Real biometric quick unlock for staff; a school or college water meter reading with a daily bonus when it stays under target |
 
 ## 8. What was left out, and why
 

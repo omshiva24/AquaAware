@@ -1,6 +1,6 @@
 # Accessibility in AquaAware 2.0
 
-AquaAware is used by school children of different ages and reading levels, on shared and low-cost phones, sometimes outdoors in bright sun. Accessibility is part of the design, not an add-on. The target is **WCAG 2.2 level AA** (the Web Content Accessibility Guidelines, the usual standard for apps).
+AquaAware is used by school and college students of different ages and reading levels, on shared and low-cost phones, sometimes outdoors in bright sun. Accessibility is part of the design, not an add-on. The target is **WCAG 2.2 level AA** (the Web Content Accessibility Guidelines, the usual standard for apps).
 
 ## For people who read with difficulty or have low vision
 
@@ -13,7 +13,7 @@ AquaAware is used by school children of different ages and reading levels, on sh
 
 ## For screen reader users (TalkBack, VoiceOver, NVDA, Narrator)
 
-- Every icon-only button has a name (for example "Close quiz", "Read the question aloud", "Copy class code").
+- Every icon-only button has a name (for example "Close quiz", "Read the question aloud", "Copy team code").
 - Screen titles and section titles are marked as headings, so you can jump between them.
 - Changes are announced: right or wrong quiz answers, "10 seconds left", sign-in errors, scan results, a new slide, and finished tasks.
 - Charts have a spoken summary of every value, and a **Show as table** button.
@@ -40,7 +40,7 @@ The waste bins say "Green bin: wet and organic" as well as being green. Map pins
 
 ## Clear words
 
-Buttons say what they do ("Join my class", "Send to class", "Collect +5 water bonus"). Errors explain how to fix the problem ("Class codes look like AWA-2024-GHS."). Empty screens say what to do next. Sentence case throughout, no all-capital labels.
+Buttons say what they do ("Join", "Send to team", "Collect +5 water bonus"). Errors explain how to fix the problem ("Codes look like AWA-2024-GHS."). Empty screens say what to do next. Sentence case throughout, no all-capital labels.
 
 ## WCAG 2.2 checklist
 

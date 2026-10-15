@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 /// How points are earned, in one place, so rules are easy to explain to
 /// students and impossible to drift between screens.
 abstract final class PointRules {
@@ -27,7 +30,7 @@ abstract final class EcoLevels {
     EcoLevel('Droplet', 0, 'Every reservoir starts with one drop.'),
     EcoLevel('Stream', 100, 'Your actions are starting to flow.'),
     EcoLevel('River', 250, 'You carry others along with you.'),
-    EcoLevel('Lake', 500, 'A steady store your school can rely on.'),
+    EcoLevel('Lake', 500, 'A steady store your group can rely on.'),
     EcoLevel('Ocean Guardian', 1000, 'You protect the whole coast.'),
   ];
 

@@ -1,7 +1,12 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { isQuietHours } from '../src/app.js';
+import { students as seedStudents } from '../src/seed.js';
 import { STAFF, startServer } from './helpers.js';
 
 const withServer = (name, fn, env) =>
@@ -62,6 +67,20 @@ withServer('staff sign in with the seeded demo accounts', async ({ login }) => {
     assert.equal(Buffer.from(s.signingKey, 'base64').length, 32, `${who} gets a 256-bit signing key`);
     assert.equal(s.user.role, STAFF[who].role);
   }
+});
+
+withServer('offices use AquaAware too: a team lead and an employee sign in', async ({ login, student, sync }) => {
+  const lead = await login('officeLead');
+  assert.equal(lead.user.role, 'educator', 'a team lead has the leader role');
+  assert.equal(lead.user.classCode, 'AWA-2026-CTP');
+  const ravi = await student('Ravi', 'AWA-2026-CTP', '4826');
+  assert.equal(ravi.user.role, 'student', 'an employee has the member role');
+  const post = await sync(lead, 'announcement', {
+    id: 'ANN-office-test-1',
+    message: 'Switch off the corridor taps before you leave.',
+    audience: 'AWA-2026-CTP',
+  });
+  assert.equal(post.status, 201, `the team lead posts to their team: ${post.text}`);
 });
 
 withServer('wrong password and unknown email get the same answer', async ({ call }) => {
@@ -313,7 +332,7 @@ withServer('managers move students; only managers see the audit log', async ({ c
   assert.equal(audit.status, 200);
   assert.ok(audit.json.entries.some((e) => /moved STU001/.test(e.action)));
   const summary = await call('GET', '/admin/summary', { token: mgr.token });
-  assert.equal(summary.json.students.total, 15);
+  assert.equal(summary.json.students.total, seedStudents.length);
 });
 
 // -------------------------------------------------------------- realtime ---
@@ -398,4 +417,36 @@ withServer('every update the Flutter app sends is accepted as it builds it', asy
   const mgr = await login('manager');
   const moved = await sync(mgr, 'student_transfer', { studentId: 'STU003', from: 'AWA-2024-GHS', to: 'AWA-2024-SJH' });
   assert.equal(moved.status, 201, moved.text);
+});
+
+test('an older database gains new demo entries without losing anything', async () => {
+  const { openDatabase } = await import('../src/db.js');
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const dir = mkdtempSync(join(tmpdir(), 'aqua-'));
+  const file = join(dir, 'old.db');
+  try {
+    // A database created before the demo college existed, with a change made since.
+    let db = openDatabase(file);
+    db.exec("DELETE FROM students WHERE class_code = 'AWA-2024-CCAS'");
+    db.exec("DELETE FROM accounts WHERE id = 'EDU003'");
+    db.exec("DELETE FROM classes WHERE code = 'AWA-2024-CCAS'");
+    db.exec("UPDATE students SET class_code = 'AWA-2024-SJH' WHERE id = 'STU001'");
+    db.close();
+
+    db = openDatabase(file);
+    const n = (sql) => db.prepare(sql).get().n;
+    assert.equal(n("SELECT COUNT(*) AS n FROM classes WHERE code = 'AWA-2024-CCAS'"), 1, 'the college class is added');
+    assert.equal(n("SELECT COUNT(*) AS n FROM accounts WHERE id = 'EDU003'"), 1, 'the college teacher is added');
+    assert.equal(n('SELECT COUNT(*) AS n FROM students'), seedStudents.length);
+    assert.equal(
+      db.prepare("SELECT class_code FROM students WHERE id = 'STU001'").get().class_code,
+      'AWA-2024-SJH',
+      'existing rows are not reset',
+    );
+    db.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

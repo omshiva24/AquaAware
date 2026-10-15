@@ -1,0 +1,41 @@
+AquaAware
+Copyright (c) 2026 P Om Shiva. All rights reserved.
+
+Author: P Om Shiva
+        M.Tech, Computer Science and Engineering (2nd year)
+        Pondicherry University, Puducherry, India
+        https://github.com/omshiva24
+
+AquaAware, including its source code, design, user interface, text, lessons,
+quizzes, artwork, icons and documentation (together, "AquaAware"), is the
+original work of the author. It is protected by copyright law, including the
+Indian Copyright Act, 1957, and international copyright treaties.
+
+The source code is published so that it can be read and evaluated. No licence
+is granted to use it in any other way. Without the prior written permission
+of the author, you may not:
+
+  1. copy or reproduce the source code, in whole or in part, for any use;
+  2. modify, translate or adapt it, or create works based on it;
+  3. distribute, publish, sublicense, sell or rent it, or any work based on it;
+  4. use it, or any part of it, in another project, product, competition
+     entry, assignment, thesis or publication; or
+  5. remove or change this notice, the copyright notices in the files, or the
+     author credit shown in the app.
+
+You may read the code on GitHub and use the published app as provided.
+GitHub's terms of service let GitHub users view and fork public repositories
+on GitHub; that does not give anyone the right to use, modify or distribute
+AquaAware.
+
+To ask for permission, contact the author through https://github.com/omshiva24.
+
+Third-party components keep their own licences, and nothing in this notice
+limits your rights under them: the Flutter framework and the packages listed
+in pubspec.yaml, the Atkinson Hyperlegible Next typeface (SIL Open Font
+License, see assets/fonts/OFL.txt) and OpenStreetMap map data (Open Database
+License).
+
+AQUAAWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY ARISING FROM THE USE OF AQUAAWARE.

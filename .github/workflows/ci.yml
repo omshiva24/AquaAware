@@ -1,3 +1,6 @@
+# Copyright (c) 2026 P Om Shiva. All rights reserved.
+# AquaAware: unauthorised copying, modification or distribution of this file,
+# by any means, is prohibited without the author's written permission. See LICENSE.
 # Checks every push and pull request: the Flutter app (analyzer + all tests)
 # and the Node.js server (its own test suite).
 name: Checks

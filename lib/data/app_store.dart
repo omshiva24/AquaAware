@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -105,7 +109,10 @@ class AppStore extends ChangeNotifier {
   Future<void> load() async {
     final seedVersion = await _vault.readJson('seedVersion');
     accounts = decodeList(await _vault.readJson('accounts'), Account.fromJson);
-    if (seedVersion != CommunitySeed.version || accounts.isEmpty) {
+    // Data from before version 2 is reset; version 2 data is kept and only
+    // gains the classes, accounts and students added since (_addNewSeedData).
+    final keep = seedVersion is int && seedVersion >= 2 && accounts.isNotEmpty;
+    if (!keep) {
       await _seed();
     } else {
       students = decodeList(await _vault.readJson('students'), StudentProfile.fromJson);
@@ -132,6 +139,7 @@ class AppStore extends ChangeNotifier {
           _guards[e.key as String] = _LoginGuard.fromJson((e.value as Map).cast<String, Object?>());
         }
       }
+      if (seedVersion != CommunitySeed.version) await _addNewSeedData();
     }
     ledgerBrokenAt = await LedgerChain.firstBrokenIndex(ledger, _vault.macKey);
     notifyListeners();
@@ -144,6 +152,19 @@ class AppStore extends ChangeNotifier {
     await _seed();
     ledgerBrokenAt = -1;
     notifyListeners();
+  }
+
+  /// Adds seed classes, accounts and students that this device does not have
+  /// yet, without touching anything people have already done.
+  Future<void> _addNewSeedData() async {
+    final codes = {for (final c in classes) c.code};
+    final accountIds = {for (final a in accounts) a.id};
+    final studentIds = {for (final s in students) s.id};
+    classes.addAll(CommunitySeed.classes.where((c) => !codes.contains(c.code)));
+    accounts.addAll(CommunitySeed.accounts().where((a) => !accountIds.contains(a.id)));
+    students.addAll(CommunitySeed.students().where((s) => !studentIds.contains(s.id)));
+    await Future.wait([for (final slot in const ['classes', 'accounts', 'students']) _persist(slot)]);
+    await _vault.writeJson('seedVersion', CommunitySeed.version);
   }
 
   Future<void> _seed() async {
@@ -186,7 +207,7 @@ class AppStore extends ChangeNotifier {
       Announcement(
         id: 'ANN-seed-1',
         message: 'Beach clean-up at Rock Beach this Saturday, 7 am. Bring gloves and a water '
-            'bottle; we will provide bags. Mark this done once you have registered with your educator.',
+            'bottle; we will provide bags. Mark this done once you have registered.',
         senderId: 'DESK-NGO003',
         senderName: 'Community Seva Centre',
         senderRole: Role.ngo,
@@ -231,7 +252,7 @@ class AppStore extends ChangeNotifier {
     ];
 
     activity = [
-      ActivityLogEntry(at: now.subtract(const Duration(hours: 5)), actor: 'Community Seva Centre', action: 'sent a broadcast to all schools'),
+      ActivityLogEntry(at: now.subtract(const Duration(hours: 5)), actor: 'Community Seva Centre', action: 'sent a broadcast to everyone'),
       ActivityLogEntry(at: now.subtract(const Duration(days: 1, hours: 2)), actor: 'Mrs. Kavitha Selvaraj', action: 'posted an announcement to AWA-2024-GHS'),
       ActivityLogEntry(at: now.subtract(const Duration(days: 3)), actor: 'Mrs. Kavitha Selvaraj', action: 'shared "Rainwater harvesting at school.pdf"'),
     ];
@@ -297,6 +318,10 @@ class AppStore extends ChangeNotifier {
     }
     return null;
   }
+
+  /// School or college, for the words shown to people in this class.
+  InstitutionKind kindOf(String? classCode) =>
+      classCode == null ? InstitutionKind.school : (classByCode(classCode)?.kind ?? InstitutionKind.school);
 
   Account? accountById(String id) {
     for (final a in accounts) {
@@ -365,16 +390,18 @@ class AppStore extends ChangeNotifier {
     await _save(['students', 'activity']);
   }
 
-  /// Q6 — a new school/class exists only when an educator registers it.
+  /// Q6 — a new class (at a school or a college) exists only when a teacher
+  /// or faculty member registers it.
   Future<Account> registerEducator({
     required String name,
     required String email,
     required String secretHash,
     required String school,
     required String city,
+    InstitutionKind kind = InstitutionKind.school,
   }) async {
     if (accountByLogin(Role.educator, email) != null) {
-      throw const ActionRefused('An educator with this email already exists. Sign in instead.');
+      throw const ActionRefused('An account with this email already exists. Sign in instead.');
     }
     final cleanSchool = InputRules.clean(school, max: InputRules.maxTitle);
     final initials = cleanSchool
@@ -383,7 +410,8 @@ class AppStore extends ChangeNotifier {
         .map((w) => w[0].toUpperCase())
         .take(4)
         .join();
-    final base = 'AWA-${DateTime.now().year}-${initials.length >= 2 ? initials : 'SCH'}';
+    final fallback = kind == InstitutionKind.college ? 'COL' : 'SCH';
+    final base = 'AWA-${DateTime.now().year}-${initials.length >= 2 ? initials : fallback}';
     var code = base;
     var n = 2;
     while (classByCode(code) != null) {
@@ -401,7 +429,13 @@ class AppStore extends ChangeNotifier {
       createdAt: DateTime.now(),
     );
     accounts.add(account);
-    classes.add(ClassRoom(code: code, school: cleanSchool, educatorId: account.id, city: InputRules.clean(city, max: 40)));
+    classes.add(ClassRoom(
+      code: code,
+      school: cleanSchool,
+      educatorId: account.id,
+      city: InputRules.clean(city, max: 40),
+      kind: kind,
+    ));
     _log(account.name, 'registered $cleanSchool ($code)');
     await _save(['accounts', 'classes', 'activity']);
     return account;
@@ -412,7 +446,7 @@ class AppStore extends ChangeNotifier {
   Future<void> transferStudent(String studentId, String newClassCode, {required String by}) async {
     final s = studentById(studentId);
     final target = classByCode(newClassCode);
-    if (s == null || target == null) throw const ActionRefused('Student or class not found.');
+    if (s == null || target == null) throw const ActionRefused('That person or group was not found.');
     final from = s.classCode;
     s.classCode = target.code;
     _log(by, 'moved ${s.name} from $from to ${target.code}');
@@ -505,7 +539,7 @@ class AppStore extends ChangeNotifier {
       throw const ActionRefused('Redemptions are paused until the ledger passes its integrity check.');
     }
     if (hasEarned(userId, refKey)) throw const ActionRefused('This reward was already redeemed.');
-    if (balanceOf(userId) < points) throw const ActionRefused('The student no longer has enough points.');
+    if (balanceOf(userId) < points) throw const ActionRefused('They no longer have enough points.');
     ledger.add(await _sealEntry(userId, -points, reason, refKey, DateTime.now()));
   }
 
@@ -580,9 +614,9 @@ class AppStore extends ChangeNotifier {
   Future<int> completeSortGame(String studentId) =>
       award(studentId, PointRules.sortGame, 'Sorting challenge completed', 'sort_game');
 
-  /// Q12 — daily bonus when the school stays under its water target.
+  /// Q12 — daily bonus when the school or college stays under its water target.
   Future<int> claimWaterBonus(String studentId) => award(studentId, PointRules.waterTargetBonus,
-      'School stayed under its water target', 'water:${Fmt.dayKey(DateTime.now())}');
+      'Stayed under the water target', 'water:${Fmt.dayKey(DateTime.now())}');
 
   StudentSummary summaryOf(StudentProfile s) {
     final p = progressOf(s.id);
@@ -661,7 +695,7 @@ class AppStore extends ChangeNotifier {
       urgent: urgent,
     );
     announcements.insert(0, a);
-    _log(sender.name, audience == 'ALL' ? 'sent a broadcast to all schools' : 'posted an announcement to $audience');
+    _log(sender.name, audience == 'ALL' ? 'sent a broadcast to everyone' : 'posted an announcement to $audience');
     await _save(['announcements', 'activity']);
     await _sync.enqueue('announcement', {
       'id': a.id,
@@ -689,7 +723,7 @@ class AppStore extends ChangeNotifier {
     await _save(['announcements']);
     // Queued before the points so the server sees the completion first.
     await _sync.enqueue('announcement_done', {'announcementId': a.id});
-    final from = a.senderRole == Role.ngo ? 'NGO task' : 'Class task';
+    final from = a.senderRole == Role.ngo ? 'NGO task' : '${kindOf(studentById(studentId)?.classCode).groupTitle} task';
     return award(studentId, a.points, '$from from ${a.senderName}', 'ann:${a.id}');
   }
 
@@ -1032,7 +1066,7 @@ class AppStore extends ChangeNotifier {
       if (claim == null || claim.nonce != t.nonce) {
         throw const ActionRefused('No matching claim was found for this code.');
       }
-      if (claim.status == ClaimStatus.cancelled) throw const ActionRefused('The student cancelled this claim.');
+      if (claim.status == ClaimStatus.cancelled) throw const ActionRefused('They cancelled this claim.');
       if (claim.status == ClaimStatus.redeemed) throw const ActionRefused('This claim was already redeemed.');
       if (t.str('sub') != claim.studentId || t.integer('pts') != claim.points) {
         throw const ActionRefused('The code does not match the claim on record.');

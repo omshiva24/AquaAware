@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 
@@ -99,7 +103,36 @@ export function openDatabase(path) {
   db.exec(SCHEMA);
   const count = db.prepare('SELECT COUNT(*) AS n FROM accounts').get().n;
   if (count === 0) seedDatabase(db);
+  else addMissingSeed(db);
   return db;
+}
+
+/**
+ * Adds classes, accounts and students that were added to the seed after this
+ * database was created (for example the demo college). Rows that already
+ * exist are never changed.
+ */
+function addMissingSeed(db) {
+  const now = Date.now();
+  db.exec('BEGIN');
+  try {
+    const cls = db.prepare('INSERT OR IGNORE INTO classes (code, school, educator_id, city) VALUES (?, ?, ?, ?)');
+    for (const c of seed.classes) cls.run(c.code, c.school, c.educatorId, c.city);
+    const acc = db.prepare(
+      'INSERT OR IGNORE INTO accounts (id, role, name, login_id, secret_hash, class_code, ngo_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    );
+    for (const a of seed.accounts) {
+      acc.run(a.id, a.role, a.name, a.loginId.toLowerCase(), a.secretHash, a.classCode ?? null, a.ngoId ?? null);
+    }
+    const st = db.prepare(
+      'INSERT OR IGNORE INTO students (id, name, name_key, class_code, pin_hash, joined_at) VALUES (?, ?, ?, ?, NULL, ?)',
+    );
+    for (const s of seed.students) st.run(s.id, s.name, s.name.toLowerCase(), s.classCode, now);
+    db.exec('COMMIT');
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
+  }
 }
 
 function seedDatabase(db) {

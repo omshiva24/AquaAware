@@ -1,3 +1,7 @@
+# Copyright (c) 2026 P Om Shiva. All rights reserved.
+# AquaAware: unauthorised copying, modification or distribution of this file,
+# by any means, is prohibited without the author's written permission. See LICENSE.
+
 """Turns the important part of a failed step's output into GitHub annotations,
 so failures are readable on the run's summary page (and through the API)
 without opening the full log.

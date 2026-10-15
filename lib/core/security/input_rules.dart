@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 /// Validation and sanitisation for everything a person can type.
 ///
 /// Messages travel between students, educators and NGOs, so they are cleaned
@@ -33,7 +36,7 @@ abstract final class InputRules {
   static String? validateEmail(String? value) {
     final v = (value ?? '').trim();
     if (v.isEmpty) return 'Enter your email address.';
-    if (v.length > 120 || !_email.hasMatch(v)) return 'Enter an email like name@school.org.';
+    if (v.length > 120 || !_email.hasMatch(v)) return 'Enter a full email address, like name@example.org.';
     return null;
   }
 
@@ -46,8 +49,8 @@ abstract final class InputRules {
 
   static String? validateClassCode(String? value) {
     final v = (value ?? '').trim().toUpperCase();
-    if (v.isEmpty) return 'Enter the class code from your educator.';
-    if (!_classCode.hasMatch(v)) return 'Class codes look like AWA-2024-GHS.';
+    if (v.isEmpty) return 'Enter the code you were given.';
+    if (!_classCode.hasMatch(v)) return 'Codes look like AWA-2024-GHS.';
     return null;
   }
 

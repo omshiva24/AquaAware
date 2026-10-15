@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 /// Web: files cannot be copied into app storage or opened by path.
 Future<String?> storeLocalCopy({required String sourcePath, required String fileName}) async => null;
 

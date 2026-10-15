@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 // Configures the native folders that `flutter create` generates, so every
 // plugin AquaAware uses has the permissions and settings it needs.
 //
@@ -272,7 +275,10 @@ void _macos() {
 // ------------------------------------------------------------------- Web ---
 
 const _appName = 'AquaAware';
-const _tagline = 'Water and waste awareness for Pondicherry schools: learn, act and earn rewards.';
+const _tagline = 'Water and waste awareness for schools, colleges, offices and communities: learn, act and earn rewards. '
+    'Created by P Om Shiva, Pondicherry University.';
+const _author = 'P Om Shiva';
+const _copyright = '© 2026 P Om Shiva. All rights reserved.';
 const _themeHex = '#1C6E8C'; // AqColors.tide
 const _backgroundHex = '#F3F6F6'; // AqColors.seaSalt
 
@@ -292,7 +298,8 @@ const _loadingScreen = '''
     </style>
     <img src="icons/Icon-192.png" alt="">
     <div id="aq-loading-text">AquaAware is loading…</div>
-    <small>Water and waste awareness for Pondicherry schools</small>
+    <small>Water and waste awareness for everyone</small>
+    <small>Created by P Om Shiva · M.Tech CSE · Pondicherry University</small>
     <noscript>AquaAware needs JavaScript. Please turn it on and reload.</noscript>
   </div>
 ''';
@@ -342,6 +349,12 @@ void _web() {
           RegExp(r'<meta name="apple-mobile-web-app-title" content="[^"]*">'),
           '<meta name="apple-mobile-web-app-title" content="$_appName">',
         );
+    if (!out.contains('name="author"')) {
+      out = out.replaceFirst(
+        '<meta charset="UTF-8">',
+        '<meta charset="UTF-8">\n  <meta name="author" content="$_author">\n  <meta name="copyright" content="$_copyright">',
+      );
+    }
     if (!out.contains('name="theme-color"')) {
       out = out.replaceFirst('<meta charset="UTF-8">', '<meta charset="UTF-8">\n  <meta name="theme-color" content="$_themeHex">');
     }

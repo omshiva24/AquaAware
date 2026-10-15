@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'package:aquaaware/core/platform/device_context.dart';
 import 'package:aquaaware/core/utils/format.dart';
 import 'package:aquaaware/core/utils/geo.dart';
@@ -6,6 +10,7 @@ import 'package:aquaaware/data/models/models.dart';
 import 'package:aquaaware/data/points_rules.dart';
 import 'package:aquaaware/data/seed/community_seed.dart';
 import 'package:aquaaware/data/seed/content_seed.dart';
+import 'package:aquaaware/features/student/student_screens.dart';
 import 'package:aquaaware/widgets/slide_art.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -111,6 +116,14 @@ void main() {
       expect(PointRules.minPickupWait, greaterThan(Duration.zero));
     });
 
+    test('the demo office team has a team lead and four employees', () {
+      final team = CommunitySeed.classes.firstWhere((c) => c.code == 'AWA-2026-CTP');
+      expect(team.kind, InstitutionKind.office);
+      expect(CommunitySeed.students().where((s) => s.classCode == team.code), hasLength(4));
+      final lead = CommunitySeed.accounts().firstWhere((a) => a.id == team.educatorId);
+      expect(lead.classCode, team.code);
+    });
+
     test('every seeded student belongs to a seeded class', () {
       final codes = CommunitySeed.classes.map((c) => c.code).toSet();
       for (final s in CommunitySeed.students()) {
@@ -133,5 +146,47 @@ void main() {
     expect(make(Role.ngo).points, 10);
     expect(make(Role.educator).points, 5);
     expect(make(Role.educator).reaches('AWA-2024-GHS'), isTrue);
+  });
+
+  group('Groups of every kind (school, college, office, community)', () {
+    test('each kind speaks its own words', () {
+      expect(InstitutionKind.school.codeLabel, 'Class code');
+      expect(InstitutionKind.office.codeLabel, 'Team code');
+      expect(InstitutionKind.community.codeLabel, 'Group code');
+      expect(InstitutionKind.office.membersTitle, 'Employees');
+      expect(InstitutionKind.office.leaderNoun, 'team lead');
+      expect(InstitutionKind.community.leaderTitle, 'Organiser');
+      expect(roleTitle(Role.student, InstitutionKind.office), 'Employee');
+      expect(roleTitle(Role.educator, InstitutionKind.college), 'Faculty');
+      expect(roleTitle(Role.ngo, InstitutionKind.office), Role.ngo.label);
+    });
+
+    test('older saved data without a kind is read as a school', () {
+      expect(InstitutionKind.parse(null), InstitutionKind.school);
+      expect(InstitutionKind.parse('office'), InstitutionKind.office);
+      expect(InstitutionKind.parse('nonsense'), InstitutionKind.school);
+      final room = ClassRoom.fromJson(const {'code': 'AWA-2026-ABC', 'school': 'X', 'educatorId': 'E', 'city': 'Y'});
+      expect(room.kind, InstitutionKind.school);
+      final office = ClassRoom(code: 'AWA-2026-ABC', school: 'X', educatorId: 'E', city: 'Y', kind: InstitutionKind.office);
+      expect(ClassRoom.fromJson(office.toJson()).kind, InstitutionKind.office);
+    });
+
+    test('only schools and colleges hold notices during class hours', () {
+      expect(InstitutionKind.values.where((k) => k.holdsNoticesDuringDay).toList(),
+          [InstitutionKind.school, InstitutionKind.college]);
+      expect(InstitutionKind.school.dayEndLabel, '3 pm');
+      expect(InstitutionKind.office.dayEndLabel, '6 pm');
+    });
+
+    test('the 4W "where" line follows the group (Q7)', () {
+      final tuesdayMorning = DateTime(2026, 10, 13, 11);
+      final tuesdayEvening = DateTime(2026, 10, 13, 20);
+      expect(StudentHomeScreen.whereLine(tuesdayMorning), 'You are probably at school');
+      expect(StudentHomeScreen.whereLine(tuesdayMorning, InstitutionKind.college), 'You are probably at college');
+      expect(StudentHomeScreen.whereLine(tuesdayMorning, InstitutionKind.office), 'You are probably at work');
+      expect(StudentHomeScreen.whereLine(tuesdayEvening, InstitutionKind.office), 'Away from work');
+      expect(StudentHomeScreen.whereLine(tuesdayEvening), 'Learning from home');
+      expect(StudentHomeScreen.whereLine(tuesdayMorning, InstitutionKind.community), 'Every small action counts');
+    });
   });
 }

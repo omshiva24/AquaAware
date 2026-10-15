@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 P Om Shiva. All rights reserved.
+# AquaAware: unauthorised copying, modification or distribution of this file,
+# by any means, is prohibited without the author's written permission. See LICENSE.
 # One-time setup on macOS or Linux: creates the native platform folders,
 # configures permissions, and downloads packages. Safe to run again.
 set -euo pipefail

@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'package:flutter/material.dart';
 
 import '../services/app_services.dart';
@@ -49,7 +53,13 @@ class EducatorShell extends StatelessWidget {
           location: location,
           destinations: [
             const ShellDestination(path: '/educator', label: 'Overview', icon: Icons.dashboard_outlined, selectedIcon: Icons.dashboard),
-            const ShellDestination(path: '/educator/class', label: 'Class', icon: Icons.groups_outlined, selectedIcon: Icons.groups),
+            // "Class", "Team" or "Group", in the leader's own words.
+            ShellDestination(
+              path: '/educator/class',
+              label: s.store.kindOf(s.auth.user?.classCode).groupTitle,
+              icon: Icons.groups_outlined,
+              selectedIcon: Icons.groups,
+            ),
             ShellDestination(path: '/educator/messages', label: 'Messages', icon: Icons.forum_outlined, selectedIcon: Icons.forum, badgeCount: unread),
             const ShellDestination(path: '/educator/resources', label: 'Resources', icon: Icons.folder_outlined, selectedIcon: Icons.folder),
             const ShellDestination(path: '/educator/insights', label: 'Insights', icon: Icons.insights_outlined, selectedIcon: Icons.insights),

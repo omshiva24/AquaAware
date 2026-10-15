@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -237,7 +241,7 @@ class AuthService extends ChangeNotifier {
     final code = classCode.trim().toUpperCase();
     final room = _store.classByCode(code);
     if (room == null) {
-      return const AuthResult.failure('We could not find that class code. Check it with your educator.');
+      return const AuthResult.failure('We could not find that code. Check it with the person who gave it to you.');
     }
     final key = 'student:$code:${cleanName.toLowerCase()}';
     final locked = _store.lockRemaining(key);
@@ -251,7 +255,7 @@ class AuthService extends ChangeNotifier {
       if (!await PasswordHasher.verify(pin, student.pinHash!)) {
         final lock = await _store.recordLoginFailure(key, actor: cleanName);
         return AuthResult.failure(
-          lock != null ? 'Too many attempts. Try again in ${_fmt(lock)}.' : 'That PIN is not right. Ask your educator if you forgot it.',
+          lock != null ? 'Too many attempts. Try again in ${_fmt(lock)}.' : 'That PIN is not right. Ask your ${room.kind.leaderNoun} to reset it if you forgot it.',
           lockedFor: lock,
         );
       }
@@ -291,6 +295,7 @@ class AuthService extends ChangeNotifier {
     required String password,
     required String school,
     required String city,
+    InstitutionKind kind = InstitutionKind.school,
   }) async {
     final hash = await PasswordHasher.hash(password);
     try {
@@ -300,6 +305,7 @@ class AuthService extends ChangeNotifier {
         secretHash: hash,
         school: school,
         city: city,
+        kind: kind,
       );
       return AuthResult.success(classCode: account.classCode);
     } on ActionRefused catch (e) {

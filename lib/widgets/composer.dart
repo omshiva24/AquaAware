@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'package:flutter/material.dart';
 
 import '../core/security/input_rules.dart';
@@ -129,7 +133,7 @@ class _ComposerSheetState extends State<_ComposerSheet> {
                   onChanged: (v) => setState(() => _urgent = v),
                   title: const Text('Urgent'),
                   subtitle: const Text(
-                    'Urgent notices alert students straight away. Others are held quietly during class hours (8 am – 3 pm).',
+                    'Urgent notices alert everyone straight away. At schools and colleges, others are held quietly during class hours (8 am – 3 pm).',
                   ),
                 ),
               ],

@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -298,7 +302,7 @@ class ScanScreen extends StatelessWidget {
       body: SafeArea(
         child: CodeScanner(
           manualHint: isDesk
-              ? 'Paste the ticket code the student copied from their reward ticket.'
+              ? 'Paste the ticket code the person copied from their reward ticket.'
               : 'Paste the event code shared by the NGO volunteer.',
           onCode: (raw) => isDesk ? redeemOutcome(context, raw) : checkInOutcome(context, raw),
         ),
@@ -311,7 +315,7 @@ Future<ScanOutcome> checkInOutcome(BuildContext context, String raw) async {
   final s = context.services;
   final u = s.auth.user;
   if (u == null || u.role != Role.student) {
-    return const ScanOutcome.failure('Not signed in as a student', 'Only students can check in to events.');
+    return const ScanOutcome.failure('Not signed in as a member', 'Sign in as a student or member to check in to events.');
   }
   try {
     final r = await s.store.checkIn(raw, student: u);

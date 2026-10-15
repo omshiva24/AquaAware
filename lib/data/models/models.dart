@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import '../../core/utils/geo.dart';
 
 // ------------------------------------------------------------------ helpers
@@ -10,10 +14,12 @@ int _ms(DateTime t) => t.millisecondsSinceEpoch;
 // -------------------------------------------------------------------- roles
 
 enum Role {
-  student('Student', '/student'),
-  educator('Educator', '/educator'),
-  ngo('NGO', '/ngo'),
-  manager('Manager', '/manager');
+  // Shown before we know someone's group; once signed in, roleTitle() gives
+  // their group's own word (Student, Employee, Teacher, Team lead…).
+  student('Student or member', '/student'),
+  educator('Teacher or team lead', '/educator'),
+  ngo('NGO partner', '/ngo'),
+  manager('Admin', '/manager');
 
   const Role(this.label, this.home);
   final String label;
@@ -157,19 +163,162 @@ class StudentProfile {
       );
 }
 
+/// The kind of group a class, team or group belongs to. AquaAware works for
+/// any of them, and the words the app shows follow the kind: a school class
+/// has a teacher and students, an office team has a team lead and employees.
+///
+/// Inside the code the member role is still called `student` and the leader
+/// `educator`, and every group is a `ClassRoom` with a `classCode`; only the
+/// words people see change.
+enum InstitutionKind {
+  school(
+    label: 'School',
+    noun: 'school',
+    atPlace: 'at school',
+    leaderTitle: 'Teacher',
+    leaderNoun: 'teacher',
+    memberTitle: 'Student',
+    membersNoun: 'students',
+    groupTitle: 'Class',
+    groupNoun: 'class',
+    holdsNoticesDuringDay: true,
+    dayEndHour: 15,
+  ),
+  college(
+    label: 'College',
+    noun: 'college',
+    atPlace: 'at college',
+    leaderTitle: 'Faculty',
+    leaderNoun: 'faculty',
+    memberTitle: 'Student',
+    membersNoun: 'students',
+    groupTitle: 'Class',
+    groupNoun: 'class',
+    holdsNoticesDuringDay: true,
+    dayEndHour: 15,
+  ),
+  office(
+    label: 'Office',
+    noun: 'office',
+    atPlace: 'at work',
+    leaderTitle: 'Team lead',
+    leaderNoun: 'team lead',
+    memberTitle: 'Employee',
+    membersNoun: 'employees',
+    groupTitle: 'Team',
+    groupNoun: 'team',
+    holdsNoticesDuringDay: false,
+    dayEndHour: 18,
+  ),
+  community(
+    label: 'Community',
+    noun: 'community',
+    atPlace: 'out in your community',
+    leaderTitle: 'Organiser',
+    leaderNoun: 'organiser',
+    memberTitle: 'Member',
+    membersNoun: 'members',
+    groupTitle: 'Group',
+    groupNoun: 'group',
+    holdsNoticesDuringDay: false,
+    dayEndHour: 18,
+  );
+
+  const InstitutionKind({
+    required this.label,
+    required this.noun,
+    required this.atPlace,
+    required this.leaderTitle,
+    required this.leaderNoun,
+    required this.memberTitle,
+    required this.membersNoun,
+    required this.groupTitle,
+    required this.groupNoun,
+    required this.holdsNoticesDuringDay,
+    required this.dayEndHour,
+  });
+
+  /// "School", "Office", for headings and buttons.
+  final String label;
+
+  /// "school", "office", inside sentences ("the school tank").
+  final String noun;
+
+  /// Where members probably are during the day ("at school", "at work").
+  final String atPlace;
+
+  /// "Teacher", "Faculty", "Team lead", "Organiser": who runs the group.
+  final String leaderTitle;
+
+  /// The same inside sentences ("ask your team lead").
+  final String leaderNoun;
+
+  /// "Student", "Employee", "Member".
+  final String memberTitle;
+
+  /// "students", "employees", "members".
+  final String membersNoun;
+
+  /// "Class", "Team", "Group".
+  final String groupTitle;
+
+  /// "class", "team", "group" ("your team").
+  final String groupNoun;
+
+  /// Schools and colleges hold non-urgent notices during the school day
+  /// (Q2 quiet hours); offices and communities get them straight away.
+  final bool holdsNoticesDuringDay;
+
+  /// The hour the day's activities end; the daily water bonus opens then.
+  final int dayEndHour;
+
+  /// "Class code", "Team code", "Group code".
+  String get codeLabel => '$groupTitle code';
+
+  /// "student", "employee", "member".
+  String get memberNoun => memberTitle.toLowerCase();
+
+  /// "Students", "Employees", "Members".
+  String get membersTitle => '${membersNoun[0].toUpperCase()}${membersNoun.substring(1)}';
+
+  /// "3 pm", "6 pm".
+  String get dayEndLabel => dayEndHour > 12 ? '${dayEndHour - 12} pm' : '$dayEndHour am';
+
+  /// Older saved data has no kind; those classes are schools.
+  static InstitutionKind parse(Object? value) => values.asNameMap()[value] ?? InstitutionKind.school;
+}
+
+/// The title a signed-in person sees for their own role, in their group's words.
+String roleTitle(Role role, InstitutionKind kind) => switch (role) {
+      Role.student => kind.memberTitle,
+      Role.educator => kind.leaderTitle,
+      Role.ngo || Role.manager => role.label,
+    };
+
 class ClassRoom {
-  const ClassRoom({required this.code, required this.school, required this.educatorId, required this.city});
+  const ClassRoom({
+    required this.code,
+    required this.school,
+    required this.educatorId,
+    required this.city,
+    this.kind = InstitutionKind.school,
+  });
   final String code;
+
+  /// The name of the school, college, office or community group.
   final String school;
   final String educatorId;
   final String city;
+  final InstitutionKind kind;
 
-  Map<String, Object?> toJson() => {'code': code, 'school': school, 'educatorId': educatorId, 'city': city};
+  Map<String, Object?> toJson() =>
+      {'code': code, 'school': school, 'educatorId': educatorId, 'city': city, 'kind': kind.name};
   factory ClassRoom.fromJson(Map<String, Object?> j) => ClassRoom(
         code: j['code']! as String,
         school: j['school']! as String,
         educatorId: j['educatorId']! as String,
         city: j['city']! as String,
+        kind: InstitutionKind.parse(j['kind']),
       );
 }
 
@@ -364,11 +513,15 @@ class Collector {
   final String area;
 }
 
+/// A school, college or university shown on the eco-map.
 class SchoolSite {
-  const SchoolSite({required this.id, required this.name, required this.location});
+  const SchoolSite({required this.id, required this.name, required this.location, this.type = 'School'});
   final String id;
   final String name;
   final GeoPoint location;
+
+  /// "School", "College" or "University", shown under the name.
+  final String type;
 }
 
 // --------------------------------------------------------------- activity

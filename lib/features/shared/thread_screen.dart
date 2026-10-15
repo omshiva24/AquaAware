@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -93,7 +97,7 @@ class _ThreadScreenState extends State<ThreadScreen> {
           ? const EmptyState(
               icon: Icons.lock_outline,
               title: 'Conversation not available',
-              message: 'You can only message your own class.',
+              message: 'You can only message people in your own group.',
             )
           : Column(
               children: [

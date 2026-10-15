@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import '../../core/utils/geo.dart';
 import '../models/models.dart';
 
@@ -7,7 +11,10 @@ import '../models/models.dart';
 /// precomputed). The plain demo credentials are listed in README.md so the
 /// app can be tried; change them before any real deployment.
 abstract final class CommunitySeed {
-  static const int version = 2;
+  /// Version 3 added the demo college class, version 4 the demo office team.
+  /// Devices with version 2 data or later keep everything and only gain the
+  /// new entries (see AppStore.load).
+  static const int version = 4;
 
   static const city = GeoPoint(11.9416, 79.8083);
 
@@ -29,6 +36,23 @@ abstract final class CommunitySeed {
       educatorId: 'EDU002',
       city: 'Pondicherry',
     ),
+    // A demo college (the name is invented) so the college wording can be tried.
+    ClassRoom(
+      code: 'AWA-2024-CCAS',
+      school: 'Coastal College of Arts and Science, Pondicherry',
+      educatorId: 'EDU003',
+      city: 'Pondicherry',
+      kind: InstitutionKind.college,
+    ),
+    // A demo office team (the company name is invented): AquaAware is for
+    // workplaces too, with a team lead, employees and a team code.
+    ClassRoom(
+      code: 'AWA-2026-CTP',
+      school: 'Coastline Tech Park – Green Team, Pondicherry',
+      educatorId: 'EDU004',
+      city: 'Pondicherry',
+      kind: InstitutionKind.office,
+    ),
   ];
 
   static List<Account> accounts() => [
@@ -49,6 +73,24 @@ abstract final class CommunitySeed {
           secretHash: r'pbkdf2-sha256$100000$+xEbtGOOAUrQZ7zBVCnwRQ==$Pr7pMYkdfV7AQ/5nqYJQTZyQgt/rKL64+RxlHs7HSao=',
           school: classes[1].school,
           classCode: classes[1].code,
+        ),
+        Account(
+          id: 'EDU003',
+          role: Role.educator,
+          name: 'Dr. Anitha Raman',
+          loginId: 'anitha@aquaaware.org',
+          secretHash: r'pbkdf2-sha256$100000$pRCc7omjlfZFgRL9iQneuw==$Conl2oqavhhJDvHmPzgwnDS/tCMyNx0tBc1fahUDvj0=',
+          school: classes[2].school,
+          classCode: classes[2].code,
+        ),
+        Account(
+          id: 'EDU004',
+          role: Role.educator,
+          name: 'Ms. Deepa Krishnan',
+          loginId: 'deepa@aquaaware.org',
+          secretHash: r'pbkdf2-sha256$100000$CvDzxt/81jH82EsHrBmyrg==$5ZgqwtCeVgf42g7E5BVRPhH/kqLJUqTBFHS6c7ciLNM=',
+          school: classes[3].school,
+          classCode: classes[3].code,
         ),
         Account(
           id: 'MGR001',
@@ -97,6 +139,16 @@ abstract final class CommunitySeed {
       ('Abishek Suresh', '+91 00000 00113', 4, 85),
       ('Bhanu', '+91 00000 00114', 6, 97),
       ('Nantha Kumar', '+91 00000 00115', 2, 60),
+      // Demo college students (invented names).
+      ('Kavya', '+91 00000 00116', 4, 86),
+      ('Arjun', '+91 00000 00117', 3, 79),
+      ('Meera', '+91 00000 00118', 5, 91),
+      ('Rahul', '+91 00000 00119', 2, 70),
+      // Demo office employees (invented names).
+      ('Ravi', '+91 00000 00120', 3, 82),
+      ('Sneha', '+91 00000 00121', 5, 93),
+      ('Karthik', '+91 00000 00122', 1, 64),
+      ('Fathima', '+91 00000 00123', 4, 88),
     ];
     final joined = DateTime(2026, 6, 1);
     return [
@@ -105,7 +157,13 @@ abstract final class CommunitySeed {
           id: 'STU${(i + 1).toString().padLeft(3, '0')}',
           name: rows[i].$1,
           phone: rows[i].$2,
-          classCode: i < 9 ? classes[0].code : classes[1].code,
+          classCode: i < 9
+              ? classes[0].code
+              : i < 15
+                  ? classes[1].code
+                  : i < 19
+                      ? classes[2].code
+                      : classes[3].code,
           importedModules: rows[i].$3,
           importedScorePct: rows[i].$4,
           joinedAt: joined,
@@ -212,7 +270,19 @@ abstract final class CommunitySeed {
   static const schools = <SchoolSite>[
     SchoolSite(id: 'SCH001', name: 'Government Higher Secondary School', location: GeoPoint(11.9344, 79.8270)),
     SchoolSite(id: 'SCH002', name: "St. Joseph's Higher Secondary School", location: GeoPoint(11.9395, 79.8260)),
-    SchoolSite(id: 'SCH003', name: 'Pondicherry University', location: rewardDesk),
+    SchoolSite(id: 'SCH003', name: 'Pondicherry University', location: rewardDesk, type: 'University'),
+    SchoolSite(
+      id: 'SCH004',
+      name: 'Coastal College of Arts and Science',
+      location: GeoPoint(11.9585, 79.8155),
+      type: 'College',
+    ),
+    SchoolSite(
+      id: 'SCH005',
+      name: 'Coastline Tech Park',
+      location: GeoPoint(11.9470, 79.8030),
+      type: 'Office',
+    ),
   ];
 
   static const landmarks = <(String, GeoPoint)>[

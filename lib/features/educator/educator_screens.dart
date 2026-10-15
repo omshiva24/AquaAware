@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:file_picker/file_picker.dart' show FilePicker, FileType, PlatformFile;
@@ -31,13 +35,14 @@ String _initials(String name) => name
     .join();
 
 Future<void> postClassAnnouncement(BuildContext context, SessionUser u) async {
+  final k = context.services.store.kindOf(u.classCode);
   final r = await showComposer(
     context,
     title: 'Announcement to ${u.classCode}',
-    hint: 'What should your class do?',
-    submitLabel: 'Send to class',
+    hint: 'What should your ${k.groupNoun} do?',
+    submitLabel: 'Send to ${k.groupNoun}',
     allowUrgent: true,
-    note: 'Students can mark it done for +5 points. You will see who has finished.',
+    note: '${k.membersTitle} can mark it done for +5 points. You will see who has finished.',
   );
   if (r == null || !context.mounted) return;
   try {
@@ -62,6 +67,7 @@ class EducatorOverviewScreen extends StatelessWidget {
         final u = s.auth.user;
         if (u == null || u.classCode == null) return const SizedBox.shrink();
         final store = s.store;
+        final k = store.kindOf(u.classCode);
         final roster = store.studentsIn(u.classCode!);
         final summaries = roster.map(store.summaryOf).toList();
         final avg = summaries.isEmpty
@@ -85,10 +91,10 @@ class EducatorOverviewScreen extends StatelessWidget {
           body: PageFrame(
             children: [
               Text(u.name, style: text.headlineSmall),
-              Text('${u.school ?? ''}, class ${u.classCode}', style: text.bodyMedium),
+              Text('${k.leaderTitle} · ${u.school ?? ''}, ${k.groupNoun} ${u.classCode}', style: text.bodyMedium),
               const SizedBox(height: 16),
               StatStrip(items: [
-                StatItem('Students', '${roster.length}', icon: Icons.groups_outlined),
+                StatItem(k.membersTitle, '${roster.length}', icon: Icons.groups_outlined),
                 StatItem('Quiz average', '$avg%', icon: Icons.quiz_outlined),
                 StatItem('Pickups done', '${store.handedOverCount(u.classCode)}', icon: Icons.local_shipping_outlined),
                 StatItem('Water today', '${water.usedLitres} L', icon: Icons.water_drop_outlined,
@@ -102,7 +108,7 @@ class EducatorOverviewScreen extends StatelessWidget {
                 icon: Icons.offline_bolt_outlined,
               ),
               SectionHeader('Needs attention', subtitle: atRisk.isEmpty ? 'Everyone is on track' : null,
-                  action: 'Open class', onAction: () => context.go('/educator/class')),
+                  action: 'Open ${k.groupNoun}', onAction: () => context.go('/educator/class')),
               if (atRisk.isNotEmpty)
                 Card(
                   child: Column(
@@ -121,7 +127,7 @@ class EducatorOverviewScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-              const SectionHeader('Top of the class'),
+              SectionHeader('Top of the ${k.groupNoun}'),
               Card(
                 child: Column(
                   children: [
@@ -140,12 +146,12 @@ class EducatorOverviewScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SectionHeader('Announcements', subtitle: 'Yours and NGO broadcasts your class can see'),
+              SectionHeader('Announcements', subtitle: 'Yours and NGO broadcasts your ${k.groupNoun} can see'),
               if (feed.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.campaign_outlined,
                   title: 'No announcements yet',
-                  message: 'Use Announce to give your class a task. You will see who completes it.',
+                  message: 'Use Announce to give your ${k.groupNoun} a task. You will see who completes it.',
                 )
               else
                 for (final a in feed) ...[
@@ -171,6 +177,7 @@ class _AnnouncementProgress extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final total = a.audienceSize == 0 ? 1 : a.audienceSize;
     final done = a.completedBy.length;
+    final k = context.services.store.kindOf(context.services.auth.user?.classCode);
     return Panel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +193,7 @@ class _AnnouncementProgress extends StatelessWidget {
                     if (a.senderRole == Role.ngo)
                       const Pill('From NGO', tone: Tone.success, icon: Icons.volunteer_activism_outlined)
                     else
-                      const Pill('Your class', tone: Tone.info),
+                      Pill('Your ${k.groupNoun}', tone: Tone.info),
                     if (a.urgent) const Pill('Urgent', tone: Tone.danger),
                   ],
                 ),
@@ -199,7 +206,7 @@ class _AnnouncementProgress extends StatelessWidget {
           Text(a.message, maxLines: 3, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 10),
           Semantics(
-            label: '$done of ${a.audienceSize} students completed',
+            label: '$done of ${a.audienceSize} ${k.membersNoun} completed',
             child: ExcludeSemantics(
               child: Row(
                 children: [
@@ -282,8 +289,9 @@ class _EducatorClassScreenState extends State<EducatorClassScreen> {
   @override
   Widget build(BuildContext context) {
     final s = context.services;
+    final k = s.store.kindOf(s.auth.user?.classCode);
     return Scaffold(
-      appBar: aqAppBar(context, 'Class'),
+      appBar: aqAppBar(context, k.groupTitle),
       body: ListenableBuilder(
         listenable: Listenable.merge([s.store, _search]),
         builder: (context, _) {
@@ -301,18 +309,18 @@ class _EducatorClassScreenState extends State<EducatorClassScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Class code', style: text.labelLarge),
+                          Text(k.codeLabel, style: text.labelLarge),
                           SelectableText(u.classCode!, style: text.headlineSmall),
-                          Text('Students join with this code and a PIN they choose.', style: text.bodySmall),
+                          Text('${k.membersTitle} join with this code and a PIN they choose.', style: text.bodySmall),
                         ],
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Copy class code',
+                      tooltip: 'Copy ${k.codeLabel.toLowerCase()}',
                       icon: const Icon(Icons.copy),
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: u.classCode!));
-                        if (context.mounted) context.toast('Class code copied');
+                        if (context.mounted) context.toast('${k.codeLabel} copied');
                       },
                     ),
                   ],
@@ -321,11 +329,15 @@ class _EducatorClassScreenState extends State<EducatorClassScreen> {
               const SizedBox(height: 14),
               TextField(
                 controller: _search,
-                decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search students'),
+                decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'Search ${k.membersNoun}'),
               ),
               const SizedBox(height: 12),
               if (roster.isEmpty)
-                const EmptyState(icon: Icons.groups_outlined, title: 'No students found', message: 'Share the class code so students can join.')
+                EmptyState(
+                  icon: Icons.groups_outlined,
+                  title: 'No ${k.membersNoun} found',
+                  message: 'Share the ${k.codeLabel.toLowerCase()} so your ${k.membersNoun} can join.',
+                )
               else
                 Card(
                   child: Column(
@@ -389,6 +401,7 @@ class _StudentSheetState extends State<_StudentSheet> {
   Widget build(BuildContext context) {
     final s = context.services;
     final p = widget.profile;
+    final k = s.store.kindOf(p.classCode);
     final sum = s.store.summaryOf(p);
     final text = Theme.of(context).textTheme;
     final phone = p.phone == null ? null : InputRules.normalizePhone(p.phone!);
@@ -412,18 +425,20 @@ class _StudentSheetState extends State<_StudentSheet> {
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.phone_outlined),
             title: Text(_revealed ? (p.phone ?? 'Not available') : InputRules.maskPhone(p.phone ?? '')),
-            subtitle: const Text('Guardian phone'),
+            subtitle: Text(k == InstitutionKind.school ? 'Guardian phone' : 'Phone'),
             trailing: phone == null || _revealed
                 ? null
                 : TextButton(
                     onPressed: () async {
                       final ok = await confirmAction(context,
                           title: 'Show phone number?',
-                          message: 'Only use it to contact the student or their guardian about school work.',
+                          message: k == InstitutionKind.school
+                              ? 'Only use it to contact the student or their guardian about their studies.'
+                              : 'Only use it to contact ${p.name} about AquaAware activities.',
                           confirmLabel: 'Show');
                       if (ok && mounted) {
                         setState(() => _revealed = true);
-                        s.store.logEvent(s.auth.user?.name ?? 'Educator', 'viewed the phone number of ${p.name}');
+                        s.store.logEvent(s.auth.user?.name ?? 'Teacher', 'viewed the phone number of ${p.name}');
                       }
                     },
                     child: const Text('Show'),
@@ -467,10 +482,10 @@ class _StudentSheetState extends State<_StudentSheet> {
               onPressed: () async {
                 final ok = await confirmAction(context,
                     title: 'Reset ${p.name}’s PIN?',
-                    message: 'They will choose a new PIN the next time they sign in with the class code.',
+                    message: 'They will choose a new PIN the next time they sign in with the ${k.codeLabel.toLowerCase()}.',
                     confirmLabel: 'Reset PIN');
                 if (!ok || !context.mounted) return;
-                await s.auth.resetStudentPin(p.id, by: s.auth.user?.name ?? 'Educator');
+                await s.auth.resetStudentPin(p.id, by: s.auth.user?.name ?? k.leaderTitle);
                 if (context.mounted) {
                   Navigator.of(context).pop();
                   context.toast('PIN reset for ${p.name}');
@@ -503,11 +518,13 @@ class EducatorMessagesScreen extends StatelessWidget {
           if (u == null) return const SizedBox.shrink();
           final convos = s.store.conversationsOf(u.id);
           final text = Theme.of(context).textTheme;
+          final k = s.store.kindOf(u.classCode);
           if (convos.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.forum_outlined,
               title: 'No messages yet',
-              message: 'When students ask a question it appears here. You can also message a student from the Class tab.',
+              message: 'When your ${k.membersNoun} ask a question it appears here. '
+                  'You can also message someone from the ${k.groupTitle} tab.',
             );
           }
           return PageFrame(
@@ -614,12 +631,17 @@ class EducatorResourcesScreen extends StatelessWidget {
           final list = s.store.resourcesFor(u.classCode!);
           final classSize = s.store.studentsIn(u.classCode!).length;
           final text = Theme.of(context).textTheme;
+          final k = s.store.kindOf(u.classCode);
           return PageFrame(
             children: [
-              Text('PDFs, slides and documents up to 25 MB. Students see them under Learn.', style: text.bodyMedium),
+              Text('PDFs, slides and documents up to 25 MB. Your ${k.membersNoun} see them under Learn.', style: text.bodyMedium),
               const SizedBox(height: 12),
               if (list.isEmpty)
-                const EmptyState(icon: Icons.folder_open_outlined, title: 'Nothing shared yet', message: 'Add a worksheet or slides for your class.')
+                EmptyState(
+                  icon: Icons.folder_open_outlined,
+                  title: 'Nothing shared yet',
+                  message: 'Add a worksheet, guide or slides for your ${k.groupNoun}.',
+                )
               else
                 Card(
                   child: Column(
@@ -638,7 +660,10 @@ class EducatorResourcesScreen extends StatelessWidget {
                             icon: const Icon(Icons.delete_outline),
                             onPressed: () async {
                               final ok = await confirmAction(context,
-                                  title: 'Remove this file?', message: 'Students will no longer see "${r.name}".', confirmLabel: 'Remove', destructive: true);
+                                  title: 'Remove this file?',
+                                  message: 'Your ${k.membersNoun} will no longer see "${r.name}".',
+                                  confirmLabel: 'Remove',
+                                  destructive: true);
                               if (!ok) return;
                               final removed = await s.store.removeResource(r.id);
                               final lp = removed?.localPath;
@@ -650,9 +675,9 @@ class EducatorResourcesScreen extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 12),
-              const InfoNote(
-                'Files are kept privately on this device, and students see them when they sign in here. '
-                'Sending files to students’ own phones needs file storage on the server, which this version does not include yet.',
+              InfoNote(
+                'Files are kept privately on this device, and your ${k.membersNoun} see them when they sign in here. '
+                'Sending files to their own phones needs file storage on the server, which this version does not include yet.',
                 tone: Tone.neutral,
               ),
             ],
@@ -679,6 +704,7 @@ class EducatorInsightsScreen extends StatelessWidget {
           final u = s.auth.user;
           if (u == null || u.classCode == null) return const SizedBox.shrink();
           final avgs = s.store.moduleAverages(u.classCode!);
+          final k = s.store.kindOf(u.classCode);
           final week = s.store.weeklyEngagement(u.classCode);
           final today = DateTime.now();
           final moduleData = [
@@ -699,21 +725,21 @@ class EducatorInsightsScreen extends StatelessWidget {
           final text = Theme.of(context).textTheme;
           return PageFrame(
             children: [
-              const SectionHeader('Quiz average by module', subtitle: 'Best score per student, averaged across the class'),
+              SectionHeader('Quiz average by module', subtitle: 'Best score per person, averaged across the ${k.groupNoun}'),
               Panel(
                 child: AqChart(
                   data: moduleData,
                   maxValue: 100,
                   unit: '%',
                   highlightBelow: 70,
-                  summary: 'Bar chart of class quiz averages. '
+                  summary: 'Bar chart of ${k.groupNoun} quiz averages. '
                       '${moduleData.where((d) => d.value != null).map((d) => '${d.longLabel}: ${d.value!.round()} percent').join('. ')}',
                 ),
               ),
               if (weakest != null) ...[
                 const SizedBox(height: 10),
                 InfoNote(
-                  '${weakest.longLabel} is the weakest at ${weakest.value!.round()}%. Consider revising it together in class.',
+                  '${weakest.longLabel} is the weakest at ${weakest.value!.round()}%. Consider going over it together.',
                   tone: weakest.value! < 70 ? Tone.warning : Tone.info,
                   icon: Icons.tips_and_updates_outlined,
                 ),
@@ -723,7 +749,7 @@ class EducatorInsightsScreen extends StatelessWidget {
                 child: AqChart(
                   data: weekData,
                   line: true,
-                  summary: 'Line chart of class activity over the last 7 days: ${weekData.map((d) => '${d.longLabel}: ${d.value!.round()}').join(', ')}.',
+                  summary: 'Line chart of ${k.groupNoun} activity over the last 7 days: ${weekData.map((d) => '${d.longLabel}: ${d.value!.round()}').join(', ')}.',
                 ),
               ),
               const SizedBox(height: 10),

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 P Om Shiva. All rights reserved.
+# AquaAware: unauthorised copying, modification or distribution of this file,
+# by any means, is prohibited without the author's written permission. See LICENSE.
 # One-time setup on Windows: creates the native platform folders,
 # configures permissions, and downloads packages. Safe to run again.
 #   Right-click > Run with PowerShell, or:  powershell -ExecutionPolicy Bypass -File setup.ps1

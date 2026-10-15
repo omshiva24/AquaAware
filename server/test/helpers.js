@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import { createHmac, randomBytes } from 'node:crypto';
 
 import { loadConfig } from '../src/config.js';
@@ -7,6 +11,7 @@ import { createAquaServer } from '../src/server.js';
 export const STAFF = {
   educator: { role: 'educator', loginId: 'kavitha@aquaaware.org', secret: 'Kavitha#2026' },
   educator2: { role: 'educator', loginId: 'rajan@aquaaware.org', secret: 'Rajan#2026' },
+  officeLead: { role: 'educator', loginId: 'deepa@aquaaware.org', secret: 'Deepa#2026' },
   ngo: { role: 'ngo', loginId: 'NGO001', secret: 'PSF-GREEN-2026' },
   manager: { role: 'manager', loginId: 'admin@aquaaware.org', secret: 'Manager#2026!' },
 };

@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -394,6 +398,14 @@ Future<bool> confirmAction(
   return ok ?? false;
 }
 
+/// The icon for each kind of group, used wherever groups are listed.
+IconData kindIcon(InstitutionKind kind) => switch (kind) {
+      InstitutionKind.school => Icons.school_outlined,
+      InstitutionKind.college => Icons.account_balance_outlined,
+      InstitutionKind.office => Icons.business_center_outlined,
+      InstitutionKind.community => Icons.groups_outlined,
+    };
+
 class RoleBadge extends StatelessWidget {
   const RoleBadge(this.role, {super.key});
   final Role role;
@@ -434,6 +446,8 @@ class AccountButton extends StatelessWidget {
             context.push('/security');
           case 'gallery':
             context.push('/gallery');
+          case 'about':
+            context.push('/about');
           case 'signout':
             final ok = await confirmAction(context,
                 title: 'Sign out?', message: 'You will need your details to sign in again.', confirmLabel: 'Sign out');
@@ -443,12 +457,20 @@ class AccountButton extends StatelessWidget {
       itemBuilder: (context) => [
         PopupMenuItem(
           enabled: false,
-          child: Text(user?.name ?? '', style: Theme.of(context).textTheme.titleSmall),
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(user?.name ?? '', style: Theme.of(context).textTheme.titleSmall),
+            // Their own group's word: Student, Employee, Teacher, Team lead…
+            subtitle: user == null
+                ? null
+                : Text(roleTitle(user.role, context.services.store.kindOf(user.classCode))),
+          ),
         ),
         const PopupMenuDivider(),
         const PopupMenuItem(value: 'settings', child: ListTile(leading: Icon(Icons.tune), title: Text('Settings and accessibility'))),
         const PopupMenuItem(value: 'security', child: ListTile(leading: Icon(Icons.shield_outlined), title: Text('Privacy and security'))),
         const PopupMenuItem(value: 'gallery', child: ListTile(leading: Icon(Icons.photo_library_outlined), title: Text('Impact gallery'))),
+        const PopupMenuItem(value: 'about', child: ListTile(leading: Icon(Icons.water_drop_outlined), title: Text('About AquaAware'))),
         const PopupMenuDivider(),
         const PopupMenuItem(value: 'signout', child: ListTile(leading: Icon(Icons.logout), title: Text('Sign out'))),
       ],

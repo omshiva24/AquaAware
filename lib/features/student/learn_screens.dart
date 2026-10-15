@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -34,7 +38,7 @@ IconData resourceIcon(ResourceKind k) => switch (k) {
 Future<void> openResource(BuildContext context, Resource r) async {
   final path = r.localPath;
   if (path == null) {
-    context.toast('This sample file is not stored on this device. Ask your educator to share it again.', error: true);
+    context.toast('This sample file is not stored on this device. Ask the person who shared it to share it again.', error: true);
     return;
   }
   final problem = await openLocalFile(path);
@@ -85,6 +89,7 @@ class _LearnScreenState extends State<LearnScreen> {
           final total = ContentSeed.modules.length;
           final resources = u.classCode == null ? <Resource>[] : s.store.resourcesFor(u.classCode!);
           final text = Theme.of(context).textTheme;
+          final leader = s.store.kindOf(u.classCode).leaderNoun;
           return PageFrame(
             children: [
               Panel(
@@ -112,9 +117,9 @@ class _LearnScreenState extends State<LearnScreen> {
                   ],
                 ),
               ),
-              SectionHeader('From your educator', subtitle: resources.isEmpty ? null : 'Opened files stay on this device'),
+              SectionHeader('From your $leader', subtitle: resources.isEmpty ? null : 'Opened files stay on this device'),
               if (resources.isEmpty)
-                Text('Nothing shared yet. Files your educator uploads appear here.', style: text.bodyMedium)
+                Text('Nothing shared yet. Files your $leader uploads appear here.', style: text.bodyMedium)
               else
                 Card(
                   child: Column(

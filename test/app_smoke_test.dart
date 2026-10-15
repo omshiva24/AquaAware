@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 // Boots the whole app with in-memory secure storage, signs in as every role
 // and opens every screen at phone and desktop sizes. Any exception during
 // build or layout (including "RenderFlex overflowed") fails the test.
@@ -5,6 +8,7 @@
 // Run with:  flutter test test/app_smoke_test.dart
 
 import 'package:aquaaware/app.dart';
+import 'package:aquaaware/core/app_info.dart';
 import 'package:aquaaware/data/models/models.dart';
 import 'package:aquaaware/services/app_services.dart';
 import 'package:flutter/material.dart';
@@ -136,6 +140,44 @@ void main() {
     });
   }
 
+  testWidgets('everyone can see who made AquaAware, even before signing in', (tester) async {
+    await boot(tester, _phone);
+    // The credit under the sign-in form.
+    expect(find.text('${AppInfo.authorDegree} · ${AppInfo.authorInstitution}'), findsOneWidget);
+    // The About page opens without an account and shows the author's message.
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/about');
+    await settle(tester);
+    expect(find.text(AppInfo.author), findsOneWidget);
+    expect(find.text(AppInfo.missionTitle), findsWidgets);
+    expect(find.text(AppInfo.mission.last), findsOneWidget);
+    expect(find.text(AppInfo.copyright), findsOneWidget);
+    expect(find.text('Office'), findsOneWidget, reason: 'the page lists every kind of group');
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('an office employee sees office words', (tester) async {
+    final s = await boot(tester, _phone);
+    final r = await tester.runAsync(() => s.auth.signInStudent(name: 'Ravi', classCode: 'AWA-2026-CTP', pin: '4826'));
+    expect(r?.ok, isTrue, reason: r?.message);
+    await settle(tester);
+    // The 4W line at the top of home speaks of work, not school.
+    expect(find.textContaining(RegExp('at work|Away from work')), findsWidgets);
+    expect(find.textContaining('AWA-2026-CTP'), findsWidgets);
+    expect(tester.takeException(), isNull);
+    await signOut(tester, s);
+
+    final lead = await tester.runAsync(
+        () => s.auth.signInWithSecret(role: Role.educator, loginId: 'deepa@aquaaware.org', secret: 'Deepa#2026'));
+    expect(lead?.ok, isTrue, reason: lead?.message);
+    await settle(tester);
+    expect(find.text('Team'), findsWidgets, reason: 'the navigation says Team, not Class');
+    expect(find.text('Employees'), findsWidgets);
+    expect(tester.takeException(), isNull);
+    await signOut(tester, s);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('student claims a reward and sees a QR ticket', (tester) async {
     final s = await boot(tester, _phone);
     await signIn(tester, s, Role.student);
@@ -197,7 +239,7 @@ void main() {
     await signIn(tester, s, Role.manager);
     GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/manager/directory');
     await settle(tester);
-    for (final tab in ['Educators', 'NGOs', 'Students']) {
+    for (final tab in ['Leaders', 'NGOs', 'Members']) {
       await tester.tap(find.text(tab).first);
       await settle(tester);
       expect(tester.takeException(), isNull, reason: tab);

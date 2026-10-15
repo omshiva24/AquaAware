@@ -1,8 +1,13 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/app_info.dart';
 import '../../core/platform/biometric_service.dart';
 import '../../data/models/models.dart';
 import '../../services/app_services.dart';
@@ -98,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: st.setTextScale,
                   ),
                   Text(
-                    'Preview: Rainwater from one school roof can fill several classroom tanks.',
+                    'Preview: Rainwater from one roof can fill several large tanks.',
                     style: text.bodyLarge,
                   ),
                   const SizedBox(height: 4),
@@ -167,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onSelectionChanged: (v) => st.setQuizTimer(v.first),
                     ),
                     const SizedBox(height: 6),
-                    Text('Extended time and no timer help students who read slowly or use a screen reader.',
+                    Text('Extended time and no timer help anyone who reads slowly or uses a screen reader.',
                         style: text.bodySmall),
                   ],
                 ),
@@ -193,8 +198,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: st.quietHours,
                     onChanged: st.setQuietHours,
                     secondary: const Icon(Icons.notifications_paused_outlined),
-                    title: const Text('Quiet during class'),
-                    subtitle: const Text('Hold non-urgent notices from 8 am to 3 pm on school days.'),
+                    title: const Text('Quiet during school hours'),
+                    subtitle: const Text('Schools and colleges: hold non-urgent notices during class hours, 8 am to 3 pm, Monday to Friday.'),
                   ),
                 ],
               ),
@@ -236,10 +241,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () => context.push('/security'),
                   ),
                   ListTile(
+                    leading: const Icon(Icons.water_drop_outlined),
+                    title: const Text('About AquaAware'),
+                    subtitle: const Text('Created by ${AppInfo.author} · ${AppInfo.authorInstitution}'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/about'),
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.description_outlined),
                     title: const Text('Open-source licences'),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => showLicensePage(context: context, applicationName: 'AquaAware', applicationVersion: '2.0.0'),
+                    onTap: () => showLicensePage(
+                      context: context,
+                      applicationName: AppInfo.appName,
+                      applicationVersion: AppInfo.version,
+                      applicationLegalese: '${AppInfo.copyright}\n${AppInfo.licenceSummary}',
+                    ),
                   ),
                 ],
               ),

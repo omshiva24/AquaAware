@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +11,7 @@ import '../features/auth/login_screen.dart';
 import '../features/educator/educator_screens.dart';
 import '../features/manager/manager_screens.dart';
 import '../features/ngo/ngo_screens.dart';
+import '../features/shared/about_screen.dart';
 import '../features/shared/gallery_screen.dart';
 import '../features/shared/scan_screen.dart';
 import '../features/shared/security_center.dart';
@@ -82,7 +87,9 @@ GoRouter buildRouter(AppServices services) {
     redirect: (context, state) {
       final user = services.auth.user;
       final loc = state.matchedLocation;
-      if (user == null) return loc == '/login' ? null : '/login';
+      // The sign-in screen and the About page (who made AquaAware) are open
+      // to everyone; everything else needs an account.
+      if (user == null) return loc == '/login' || loc == '/about' ? null : '/login';
       if (loc == '/login' || loc == '/') return user.role.home;
       final allowed = RouteAccess.allowedFor(loc);
       if (allowed != null && !allowed.contains(user.role)) return user.role.home;
@@ -141,6 +148,7 @@ GoRouter buildRouter(AppServices services) {
       _full('/gallery', (s) => const GalleryScreen()),
       _full('/settings', (s) => const SettingsScreen()),
       _full('/security', (s) => const SecurityCenterScreen()),
+      _full('/about', (s) => const AboutScreen()),
     ],
   );
 }

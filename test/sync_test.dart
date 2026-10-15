@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 // Tests for the outbox and server relay (Q2, Q5, Q7, Q11) against a fake
 // server, so they run anywhere with `flutter test test/sync_test.dart`.
 

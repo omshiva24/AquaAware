@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,6 +14,7 @@ import '../../services/auth_service.dart';
 import '../../widgets/common.dart';
 import '../../widgets/motion.dart';
 import '../../widgets/reservoir.dart';
+import '../shared/about_screen.dart';
 
 /// Demo credentials are shown so the pilot can be evaluated. Build with
 /// `--dart-define=AQUA_HIDE_DEMO=true` to remove the panel.
@@ -181,9 +186,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
               const SizedBox(height: 20),
               BusyButton(
-                label: _role == Role.student ? 'Join my class' : 'Sign in',
+                label: _role == Role.student ? 'Join' : 'Sign in',
                 busyLabel: 'Checking securely…',
-                icon: _role == Role.student ? Icons.school_outlined : Icons.login,
+                icon: _role == Role.student ? Icons.group_add_outlined : Icons.login,
                 onPressed: _submit,
               ),
               if (_quick != null && _role != Role.student) ...[
@@ -198,13 +203,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => _openRegister(context),
-                  child: const Text('New educator? Register your class'),
+                  child: const Text('Leading a class, team or group? Register it here'),
                 ),
               ],
               if (kShowDemoAccounts) ...[
                 const SizedBox(height: 16),
                 _DemoAccounts(onUse: _useDemo),
               ],
+              const SizedBox(height: 24),
+              const CreatorCredit(),
             ],
           ),
         ),
@@ -255,8 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
               LengthLimitingTextInputFormatter(16),
             ],
             decoration: const InputDecoration(
-              labelText: 'Class code',
+              labelText: 'Join code',
               hintText: 'AWA-2024-GHS',
+              helperText: 'Your class, team or group code, from your teacher, team lead or organiser.',
+              helperMaxLines: 2,
               prefixIcon: Icon(Icons.qr_code_2),
             ),
             validator: InputRules.validateClassCode,
@@ -307,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
             autofillHints: const [AutofillHints.email, AutofillHints.username],
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(
-              labelText: _role == Role.manager ? 'Admin email' : 'School email',
+              labelText: _role == Role.manager ? 'Admin email' : 'Email',
               prefixIcon: const Icon(Icons.alternate_email),
             ),
             validator: InputRules.validateEmail,
@@ -378,7 +387,7 @@ class _SeaPanel extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Text(
-                'Learn about water, act on waste, and watch your school’s reservoir rise.',
+                'Learn about water, act on waste, and watch your reservoir rise.',
                 style: text.titleMedium?.copyWith(color: Colors.white.withValues(alpha: 0.88), fontWeight: FontWeight.w500),
               ),
             ),
@@ -386,7 +395,7 @@ class _SeaPanel extends StatelessWidget {
           if (tall) ...[
             const SizedBox(height: 28),
             Text(
-              'A Pondicherry schools programme with partner NGOs.',
+              'For schools, colleges, offices and communities, with partner NGOs.',
               style: text.bodyMedium?.copyWith(color: AqColors.shallows),
             ),
           ],
@@ -419,10 +428,10 @@ class _RolePicker extends StatelessWidget {
   final ValueChanged<Role> onChanged;
 
   static const _info = <Role, (IconData, String, String)>{
-    Role.student: (Icons.school_outlined, 'Student', 'Join with your class code'),
-    Role.educator: (Icons.co_present_outlined, 'Educator', 'Run your class'),
-    Role.ngo: (Icons.volunteer_activism_outlined, 'NGO desk', 'Broadcast and hand out rewards'),
-    Role.manager: (Icons.admin_panel_settings_outlined, 'Manager', 'Oversee the programme'),
+    Role.student: (Icons.person_add_alt_1_outlined, 'Student or member', 'Join with the code you were given'),
+    Role.educator: (Icons.co_present_outlined, 'Teacher or team lead', 'Run a class, team or group'),
+    Role.ngo: (Icons.volunteer_activism_outlined, 'NGO partner', 'Broadcast and hand out rewards'),
+    Role.manager: (Icons.admin_panel_settings_outlined, 'Admin', 'Oversee the programme'),
   };
 
   @override
@@ -516,15 +525,23 @@ class _DemoAccounts extends StatelessWidget {
         subtitle: Text('For evaluating the pilot only', style: text.bodySmall),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         children: [
-          row('Student · Priya', 'Class AWA-2024-GHS · choose any 4-digit PIN the first time',
+          row('School student · Priya', 'Class AWA-2024-GHS · choose any 4-digit PIN the first time',
               () => onUse(Role.student, name: 'Priya', code: 'AWA-2024-GHS')),
-          row('Educator · Mrs. Kavitha', 'kavitha@aquaaware.org · Kavitha#2026',
+          row('College student · Kavya', 'Class AWA-2024-CCAS · choose any 4-digit PIN the first time',
+              () => onUse(Role.student, name: 'Kavya', code: 'AWA-2024-CCAS')),
+          row('Teacher · Mrs. Kavitha (school)', 'kavitha@aquaaware.org · Kavitha#2026',
               () => onUse(Role.educator, email: 'kavitha@aquaaware.org', secret: 'Kavitha#2026')),
-          row('Educator · Mr. Rajan', 'rajan@aquaaware.org · Rajan#2026',
+          row('Teacher · Mr. Rajan (school)', 'rajan@aquaaware.org · Rajan#2026',
               () => onUse(Role.educator, email: 'rajan@aquaaware.org', secret: 'Rajan#2026')),
-          row('NGO desk · Pondicherry Science Forum', 'Access code PSF-GREEN-2026',
+          row('Faculty · Dr. Anitha (college)', 'anitha@aquaaware.org · Anitha#2026',
+              () => onUse(Role.educator, email: 'anitha@aquaaware.org', secret: 'Anitha#2026')),
+          row('Employee · Ravi (office)', 'Team AWA-2026-CTP · choose any 4-digit PIN the first time',
+              () => onUse(Role.student, name: 'Ravi', code: 'AWA-2026-CTP')),
+          row('Team lead · Ms. Deepa (office)', 'deepa@aquaaware.org · Deepa#2026',
+              () => onUse(Role.educator, email: 'deepa@aquaaware.org', secret: 'Deepa#2026')),
+          row('NGO partner · Pondicherry Science Forum', 'Access code PSF-GREEN-2026',
               () => onUse(Role.ngo, ngoId: 'NGO001', secret: 'PSF-GREEN-2026')),
-          row('Manager', 'admin@aquaaware.org · Manager#2026!',
+          row('Admin', 'admin@aquaaware.org · Manager#2026!',
               () => onUse(Role.manager, email: 'admin@aquaaware.org', secret: 'Manager#2026!')),
         ],
       ),
@@ -547,6 +564,7 @@ class _RegisterSheetState extends State<_RegisterSheet> {
   final _school = TextEditingController();
   final _city = TextEditingController(text: 'Pondicherry');
   String _title = 'Mrs.';
+  InstitutionKind _kind = InstitutionKind.school;
   String? _error;
 
   @override
@@ -563,14 +581,22 @@ class _RegisterSheetState extends State<_RegisterSheet> {
     super.dispose();
   }
 
+  String get _orgNameLabel => switch (_kind) {
+        InstitutionKind.school => 'School name',
+        InstitutionKind.college => 'College name',
+        InstitutionKind.office => 'Company or office name',
+        InstitutionKind.community => 'Group or community name',
+      };
+
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
     final r = await context.services.auth.registerEducator(
-      name: '$_title ${_name.text.trim()}',
+      name: _title.isEmpty ? _name.text.trim() : '$_title ${_name.text.trim()}',
       email: _email.text,
       password: _password.text,
       school: _school.text,
       city: _city.text,
+      kind: _kind,
     );
     if (!mounted) return;
     if (!r.ok) {
@@ -581,12 +607,13 @@ class _RegisterSheetState extends State<_RegisterSheet> {
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.check_circle_outline),
-        title: const Text('Your class is ready'),
+        title: Text('Your ${_kind.groupNoun} is ready'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Share this class code with your students. They join with it and a PIN they choose.'),
+            Text('Share this ${_kind.codeLabel.toLowerCase()} with your ${_kind.membersNoun}. '
+                'They join with it and a PIN they choose.'),
             const SizedBox(height: 16),
             SelectableText(r.classCode ?? '', style: Theme.of(context).textTheme.headlineSmall),
           ],
@@ -619,16 +646,46 @@ class _RegisterSheetState extends State<_RegisterSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Semantics(header: true, child: Text('Register your class', style: text.titleLarge)),
+                Semantics(header: true, child: Text('Register your ${_kind.groupNoun}', style: text.titleLarge)),
                 const SizedBox(height: 4),
-                Text('A class code is created for your school. Manager and NGO accounts are set up by the programme team.',
-                    style: text.bodySmall),
+                Text(
+                  'AquaAware works for any group. You get a ${_kind.codeLabel.toLowerCase()} to share with your '
+                  '${_kind.membersNoun}. Admin and NGO accounts are set up by the programme team.',
+                  style: text.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                Semantics(header: true, child: Text('What kind of group is it?', style: text.labelLarge)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final k in InstitutionKind.values)
+                      ChoiceChip(
+                        avatar: Icon(kindIcon(k), size: 18),
+                        label: Text(k.label),
+                        selected: _kind == k,
+                        tooltip: '${k.label}: a ${k.leaderNoun} and ${k.membersNoun}',
+                        onSelected: (_) => setState(() => _kind = k),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'You will be the ${_kind.leaderNoun}; your ${_kind.membersNoun} join your ${_kind.groupNoun} with its code.',
+                  style: text.bodySmall,
+                ),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    for (final t in const ['Mr.', 'Mrs.', 'Ms.', 'Dr.'])
-                      ChoiceChip(label: Text(t), selected: _title == t, onSelected: (_) => setState(() => _title = t)),
+                    for (final t in const ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Prof.', ''])
+                      ChoiceChip(
+                        label: Text(t.isEmpty ? 'No title' : t),
+                        selected: _title == t,
+                        onSelected: (_) => setState(() => _title = t),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -644,7 +701,7 @@ class _RegisterSheetState extends State<_RegisterSheet> {
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [AutofillHints.email],
-                  decoration: const InputDecoration(labelText: 'School email', prefixIcon: Icon(Icons.alternate_email)),
+                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.alternate_email)),
                   validator: InputRules.validateEmail,
                 ),
                 const SizedBox(height: 12),
@@ -689,8 +746,8 @@ class _RegisterSheetState extends State<_RegisterSheet> {
                 TextFormField(
                   controller: _school,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(labelText: 'School name', prefixIcon: Icon(Icons.apartment_outlined)),
-                  validator: (v) => InputRules.validateRequired(v, 'the school name', max: InputRules.maxTitle),
+                  decoration: InputDecoration(labelText: _orgNameLabel, prefixIcon: Icon(kindIcon(_kind))),
+                  validator: (v) => InputRules.validateRequired(v, 'the name', max: InputRules.maxTitle),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -704,7 +761,12 @@ class _RegisterSheetState extends State<_RegisterSheet> {
                   InfoNote(_error!, tone: Tone.danger),
                 ],
                 const SizedBox(height: 18),
-                BusyButton(label: 'Create class', busyLabel: 'Securing your account…', icon: Icons.add_home_work_outlined, onPressed: _submit),
+                BusyButton(
+                  label: 'Create ${_kind.groupNoun}',
+                  busyLabel: 'Securing your account…',
+                  icon: Icons.add_home_work_outlined,
+                  onPressed: _submit,
+                ),
               ],
             ),
           ),

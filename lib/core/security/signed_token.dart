@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:convert';
 
 import 'crypto_service.dart';
@@ -75,7 +79,7 @@ class TokenSigner {
     }
     if (parts[1] != expect.name) {
       return TokenCheck.fail(expect == TokenKind.claim
-          ? 'This is an event check-in code. Open "Scan" from the student app to use it.'
+          ? 'This is an event check-in code. Open "Scan event code" on the AquaAware home screen to use it.'
           : 'This is a reward claim. Only the NGO desk can redeem it.');
     }
 

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
 /// Rules for files educators share with their class.
 ///
 /// The extension alone proves nothing — anyone can rename `game.exe` to

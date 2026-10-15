@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import '../models/models.dart';
 import '../points_rules.dart';
 
@@ -174,7 +178,7 @@ abstract final class ContentSeed {
       QuizQuestion('About how much waste does an Indian student generate each day?',
           ['0.2 kg', '0.5 kg', '1.0 kg', '2.0 kg'], 1),
       QuizQuestion('"Segregation at source" means sorting waste:',
-          ['At the dump', 'In the truck', 'At home or school', 'At the factory'], 2),
+          ['At the dump', 'In the truck', 'Where it is made: at home, school or work', 'At the factory'], 2),
       QuizQuestion('Old newspapers belong in the:', ['Blue bin', 'Green bin', 'Red bin', 'Yellow bin'], 0),
       QuizQuestion('Which technique makes sure nearby collectors are notified?',
           ['Broadcast to everyone', 'Geofencing', 'NFC', 'Printed notices'], 1),
@@ -243,11 +247,11 @@ abstract final class ContentSeed {
     'Turn the tap off while brushing — that alone saves about 6 litres a minute.',
     'Rinse vegetables in a bowl and use that water for plants.',
     'One full washing-machine load uses less water than two half loads.',
-    'Rainwater from a single school roof can fill several classroom tanks each monsoon.',
+    'Rainwater from a single school, college or office roof can fill several large tanks each monsoon.',
     'Glass bottles can be recycled again and again without losing quality.',
-    'Composting wet waste at school cuts what goes to the landfill by almost half.',
+    'Composting wet waste where you study or work cuts what goes to the landfill by almost half.',
     'Carry a steel bottle: one person can avoid over 150 plastic bottles a year.',
-    'Report overflowing tanks to your educator — a single overflow can waste hundreds of litres.',
+    'Report overflowing tanks to whoever looks after the building — a single overflow can waste hundreds of litres.',
   ];
 
   static String tipFor(DateTime day) {
@@ -257,7 +261,7 @@ abstract final class ContentSeed {
 
   static const rewards = <Reward>[
     Reward(id: 'R1', name: 'Jute bag', points: 20, blurb: 'A sturdy bag to replace plastic carry bags.'),
-    Reward(id: 'R2', name: 'Seed kit', points: 50, blurb: 'Native vegetable seeds for a school or home garden.'),
+    Reward(id: 'R2', name: 'Seed kit', points: 50, blurb: 'Native vegetable seeds for a campus or home garden.'),
     Reward(id: 'R3', name: 'Potted plant', points: 100, blurb: 'A tulsi or curry-leaf sapling in a clay pot.'),
     Reward(id: 'R4', name: 'Steel bottle', points: 200, blurb: 'Leak-proof steel bottle — no more plastic.'),
     Reward(id: 'R5', name: 'Certificate', points: 300, blurb: 'A signed Water Guardian certificate from the NGO.'),
@@ -270,9 +274,9 @@ abstract final class ContentSeed {
     GalleryItem(id: 'G1', imageSeed: 'beach', title: 'Rock Beach clean-up',
         description: 'Volunteers and students keeping Rock Beach clean.'),
     GalleryItem(id: 'G2', imageSeed: 'workshop', title: 'Segregation workshop',
-        description: 'Educators teaching the difference between dry and wet waste.'),
+        description: 'Teachers explaining the difference between dry and wet waste.'),
     GalleryItem(id: 'G3', imageSeed: 'trees', title: 'Tree plantation drive',
-        description: 'Growing the green cover around partner schools.'),
+        description: 'Growing the green cover around partner schools and colleges.'),
     GalleryItem(id: 'G4', imageSeed: 'recycling', title: 'Plastic recycling centre',
         description: 'Collected plastic turned into reusable eco-bricks.'),
     GalleryItem(id: 'G5', imageSeed: 'community', title: 'Community awareness',

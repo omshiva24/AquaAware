@@ -1,6 +1,6 @@
 # Security and privacy in AquaAware 2.0
 
-AquaAware holds information about school children, and its points turn into real rewards handed out by NGOs. So it has three jobs: keep personal data private, keep points and rewards fair, and keep working when the network does not.
+AquaAware holds information about school and college students, and its points turn into real rewards handed out by NGOs. So it has three jobs: keep personal data private, keep points and rewards fair, and keep working when the network does not.
 
 This page explains each protection in plain words. Every claim here is backed by code you can read, and the **Privacy and security** screen in the app runs live checks of the important ones.
 
@@ -51,7 +51,7 @@ This page explains each protection in plain words. Every claim here is backed by
 - **Anti-farming rules.** Quizzes pay only for improvement; a pickup can be confirmed only after the collector has had time to arrive, and only two a day earn points; at most three reward claims a day. (`lib/data/points_rules.dart`)
 - **Reward tickets.** Each ticket is `AQ1.claim.<data>.<HMAC>`. The data holds the claim, the student, the points, an issue time, a 7-day expiry and a 96-bit random nonce. The desk checks the signature (in constant time), the type, the expiry, that the nonce was never used, that it matches the claim on record, and that the student still has the points. (`lib/core/security/signed_token.dart`, `AppStore.redeemClaim`)
 - **Event check-in codes** are signed the same way but expire after 15 minutes, and the desk shows a fresh one automatically, so a photo shared later stops working. A check-in code can't be used as a reward ticket, or the other way round, because the type is part of the signed part.
-- **Clean input.** Messages are stripped of invisible and direction-changing characters (used in "Trojan Source" spoofing), trimmed and limited to 500 characters. Names, emails, class codes and PINs are validated. (`lib/core/security/input_rules.dart`)
+- **Clean input.** Messages are stripped of invisible and direction-changing characters (used in "Trojan Source" spoofing), trimmed and limited to 500 characters. Names, emails, group codes and PINs are validated. (`lib/core/security/input_rules.dart`)
 - **Safe file sharing.** Only PDF, slides, documents and plain text up to 25 MB. The first bytes of the file must match its type (every real PDF starts with `%PDF-`, Office files with a fixed signature), so a renamed program is refused. File names are cleaned before saving, so a name like `../../x` can't write outside the app's folder. (`lib/core/security/file_rules.dart`)
 
 ## Who can do what (authentication and access)
@@ -91,7 +91,7 @@ This page explains each protection in plain words. Every claim here is backed by
 ## Honest limits
 
 - **Tickets and check-in codes are verified on the device that made them.** They are signed with that device's own key. The single-device flow in the README works fully; the server records used tickets, but it doesn't yet sign or verify them, so scanning a ticket shown on a *different* phone is refused with "issued by a different device". Server-signed tickets are the next step for multi-device desks.
-- **Student profiles are claimed by name and class code.** Before a student's first sign-in, someone who knows both could claim the profile. An educator can reset the PIN. A real rollout should give each student a one-time join code.
+- **Member profiles are claimed by name and group code.** Before a member's first sign-in, someone who knows both could claim the profile. Their leader can reset the PIN. A real rollout should give each member a one-time join code.
 - **A 4-digit PIN is short.** The lockout means guessing all 10,000 PINs would take months, but PINs suit shared classroom devices, not sensitive data.
 - **Self-reported actions** (task done, waste handed over) rely on honesty. The caps limit how much anyone can gain.
 - **A device that is rooted, or unlocked in someone else's hands,** can expose what the app can see. The keystore protects keys at rest, not a compromised phone.

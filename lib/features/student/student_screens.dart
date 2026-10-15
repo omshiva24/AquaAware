@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -28,15 +32,19 @@ class StudentHomeScreen extends StatelessWidget {
   const StudentHomeScreen({super.key});
 
   /// Q7 — the 4W context model: Who (name), When (time of day),
-  /// Where (school hours → at school), What (the next useful action).
+  /// Where (the group's day: at school, at college, at work), What (the next
+  /// useful action).
   static String greeting(DateTime now) {
     final part = now.hour < 12 ? 'morning' : now.hour < 17 ? 'afternoon' : 'evening';
     return 'Good $part';
   }
 
-  static String whereLine(DateTime now) {
-    final school = now.weekday <= DateTime.friday && now.hour >= 8 && now.hour < 15;
-    return school ? 'You are probably at school' : 'Learning from home';
+  static String whereLine(DateTime now, [InstitutionKind kind = InstitutionKind.school]) {
+    if (kind == InstitutionKind.community) return 'Every small action counts';
+    final start = kind.holdsNoticesDuringDay ? 8 : 9;
+    final duringDay = now.weekday <= DateTime.friday && now.hour >= start && now.hour < kind.dayEndHour;
+    if (duringDay) return 'You are probably ${kind.atPlace}';
+    return kind.holdsNoticesDuringDay ? 'Learning from home' : 'Away from work';
   }
 
   @override
@@ -59,13 +67,14 @@ class StudentHomeScreen extends StatelessWidget {
         final done = store.progressOf(u.id).modulesDone;
         final nextModule = ContentSeed.modules.where((m) => !done.contains(m.id)).firstOrNull;
         final text = Theme.of(context).textTheme;
+        final kind = store.kindOf(u.classCode);
 
         return Scaffold(
           appBar: aqAppBar(context, '${greeting(now)}, ${u.firstName}'),
           body: PageFrame(
             children: [
               Text(
-                '${Fmt.weekday(now)} · ${whereLine(now)} · ${u.classCode ?? ''}',
+                '${Fmt.weekday(now)} · ${whereLine(now, kind)} · ${u.classCode ?? ''}',
                 style: text.bodySmall,
               ),
               const SizedBox(height: 12),
@@ -85,7 +94,8 @@ class StudentHomeScreen extends StatelessWidget {
               _TaskSection(user: u, tasks: tasks),
               const SectionHeader('Quick actions'),
               _QuickActions(user: u, nextModule: nextModule),
-              const SectionHeader('School water meter', subtitle: 'Live from the school tank (simulated until the meter is fitted)'),
+              SectionHeader('${kind.label} water meter',
+                  subtitle: 'Live from the ${kind.noun} tank (simulated until the meter is fitted)'),
               _WaterMeterCard(user: u),
               const SizedBox(height: 16),
               InfoNote(ContentSeed.tipFor(now), tone: Tone.neutral, icon: Icons.lightbulb_outline),
@@ -188,8 +198,10 @@ class _TaskSectionState extends State<_TaskSection> {
   Widget build(BuildContext context) {
     final s = context.services;
     final now = DateTime.now();
-    final classTime = s.settings.quietHours && AppStore.isQuietHours(now);
-    // Q2 — non-urgent notices that arrived during class wait until 3 pm.
+    // Q2 — at schools and colleges, non-urgent notices that arrive during
+    // class wait until 3 pm. Offices and communities get them straight away.
+    final holds = s.store.kindOf(widget.user.classCode).holdsNoticesDuringDay;
+    final classTime = holds && s.settings.quietHours && AppStore.isQuietHours(now);
     final held = classTime && !_showHeld
         ? widget.tasks.where((a) => !a.urgent && Fmt.dayKey(a.sentAt) == Fmt.dayKey(now) && a.sentAt.hour >= 8).toList()
         : <Announcement>[];
@@ -205,12 +217,17 @@ class _TaskSectionState extends State<_TaskSection> {
             subtitle: widget.tasks.isEmpty ? null : '${Fmt.plural(widget.tasks.length, 'task')} waiting',
           ),
           if (widget.tasks.isEmpty)
-            const Panel(
+            Panel(
               child: Row(
                 children: [
-                  Icon(Icons.task_alt),
-                  SizedBox(width: 12),
-                  Expanded(child: Text('You are all caught up. New tasks from your educator and NGOs appear here.')),
+                  const Icon(Icons.task_alt),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'You are all caught up. New tasks from your '
+                      '${context.services.store.kindOf(widget.user.classCode).leaderNoun} and NGOs appear here.',
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -266,7 +283,7 @@ class _TaskCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${fromNgo ? 'From NGO' : 'From your educator'} · ${a.senderName}',
+                  '${fromNgo ? 'From NGO' : 'From your ${context.services.store.kindOf(a.audience).leaderNoun}'} · ${a.senderName}',
                   style: text.labelLarge,
                 ),
               ),
@@ -294,7 +311,8 @@ class _QuickActions extends StatelessWidget {
     final s = context.services;
     final edu = s.store.educatorFor(user.classCode ?? '');
     if (edu == null) {
-      context.toast('Your class has no educator yet.', error: true);
+      final k = s.store.kindOf(user.classCode);
+      context.toast('Your ${k.groupNoun} has no ${k.leaderNoun} yet.', error: true);
       return;
     }
     await context.push('/thread/${edu.id}');
@@ -302,6 +320,7 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final leader = context.services.store.kindOf(user.classCode).leaderNoun;
     final items = <(IconData, String, String, VoidCallback)>[
       (
         moduleIcon(nextModule?.id ?? 'MOD_A'),
@@ -318,7 +337,7 @@ class _QuickActions extends StatelessWidget {
       ),
       (Icons.qr_code_scanner, 'Scan event code', 'Check in to NGO events', () => context.push('/scan')),
       (Icons.local_shipping_outlined, 'Request pickup', 'Nearest collectors', () => context.go('/student/map')),
-      (Icons.forum_outlined, 'Message educator', 'Ask a question', () => _messageEducator(context)),
+      (Icons.forum_outlined, 'Message $leader', 'Ask a question', () => _messageEducator(context)),
     ];
     return LayoutBuilder(builder: (context, c) {
       final cols = c.maxWidth >= 640 ? 4 : 2;
@@ -367,7 +386,8 @@ class _WaterMeterCard extends StatelessWidget {
     final r = WaterMeter.read(now);
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final dayOver = now.hour >= 15 || now.weekday > DateTime.friday;
+    final kind = s.store.kindOf(user.classCode);
+    final dayOver = now.hour >= kind.dayEndHour || now.weekday > DateTime.friday;
     final ref = 'water:${Fmt.dayKey(now)}';
     final claimed = s.store.hasEarned(user.id, ref);
     return Panel(
@@ -408,11 +428,12 @@ class _WaterMeterCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (!r.underTarget)
-            Text('The tank is over target today. Report any running taps to your educator.', style: text.bodySmall)
+            Text('The tank is over target today. Report any running taps to your ${kind.leaderNoun}.', style: text.bodySmall)
           else if (claimed)
             Text('Bonus collected for today. Thanks for saving water!', style: text.bodySmall)
           else if (!dayOver)
-            Text('If the school stays under ${r.targetLitres} L, everyone can collect +${PointRules.waterTargetBonus} points after 3 pm.',
+            Text('If your ${kind.noun} stays under ${r.targetLitres} L, everyone can collect '
+                '+${PointRules.waterTargetBonus} points after ${kind.dayEndLabel}.',
                 style: text.bodySmall)
           else
             BusyButton(
@@ -422,7 +443,7 @@ class _WaterMeterCard extends StatelessWidget {
               onPressed: () async {
                 try {
                   final pts = await s.store.claimWaterBonus(user.id);
-                  if (context.mounted) context.toast('+$pts points for a water-wise school day');
+                  if (context.mounted) context.toast('+$pts points for a water-wise day');
                 } on ActionRefused catch (e) {
                   if (context.mounted) context.toast(e.message, error: true);
                 }
@@ -514,7 +535,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             statusTone: store.collectorBusy(c) ? Tone.danger : Tone.success,
           ),
         for (final sc in CommunitySeed.schools)
-          MapPlace(id: sc.id, name: sc.name, subtitle: 'School', point: sc.location, kind: PlaceKind.school),
+          MapPlace(id: sc.id, name: sc.name, subtitle: sc.type, point: sc.location, kind: PlaceKind.school),
         for (final n in CommunitySeed.ngos)
           MapPlace(id: n.id, name: n.name, subtitle: 'NGO partner · ${n.area}', point: n.location, kind: PlaceKind.ngo),
       ];
@@ -933,7 +954,8 @@ class ProfileScreen extends StatelessWidget {
                 StatItem('Points', Fmt.number(points), icon: Icons.water_drop_outlined),
                 StatItem('Streak', Fmt.plural(store.streakOf(u.id), 'day'), icon: Icons.local_fire_department_outlined),
               ]),
-              const SectionHeader('Badges', subtitle: 'Badges and points stay with you if you change class'),
+              SectionHeader('Badges',
+                  subtitle: 'Badges and points stay with you if you move to another ${store.kindOf(u.classCode).groupNoun}'),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,

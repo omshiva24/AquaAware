@@ -1,3 +1,7 @@
+// Copyright (c) 2026 P Om Shiva. All rights reserved.
+// AquaAware: unauthorised copying, modification or distribution of this file,
+// by any means, is prohibited without the author's written permission. See LICENSE.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -116,7 +120,7 @@ class ManagerOverviewScreen extends StatelessWidget {
                   height: 200,
                   marks: const [0.25, 0.5, 0.75],
                   semanticLabel: 'Programme progress: ${(share * 100).round()} percent of all modules completed. '
-                      '${store.joinedStudents} of ${store.students.length} students have joined.',
+                      '${store.joinedStudents} of ${store.students.length} members have joined.',
                   child: ExcludeSemantics(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +131,7 @@ class ManagerOverviewScreen extends StatelessWidget {
                         Text('of all modules completed', style: text.titleMedium?.copyWith(color: Colors.white)),
                         const SizedBox(height: 2),
                         Text(
-                          '${store.joinedStudents} of ${store.students.length} students joined · ${Fmt.plural(store.classes.length, 'school')}',
+                          '${store.joinedStudents} of ${store.students.length} members joined · ${Fmt.plural(store.classes.length, 'group')}',
                           style: text.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.92)),
                         ),
                       ],
@@ -137,8 +141,8 @@ class ManagerOverviewScreen extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               StatStrip(items: [
-                StatItem('Students', '${store.students.length}', icon: Icons.school_outlined),
-                StatItem('Educators', '${store.educatorAccounts.length}', icon: Icons.co_present_outlined),
+                StatItem('Members', '${store.students.length}', icon: Icons.groups_outlined),
+                StatItem('Leaders', '${store.educatorAccounts.length}', icon: Icons.co_present_outlined),
                 StatItem('NGO partners', '${CommunitySeed.ngos.length}', icon: Icons.volunteer_activism_outlined),
                 StatItem('Open claims', '${store.openClaims}', icon: Icons.confirmation_number_outlined),
               ]),
@@ -156,7 +160,8 @@ class ManagerOverviewScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
-              const SectionHeader('Schools', subtitle: 'Data is partitioned by class: each educator sees only their own'),
+              const SectionHeader('Groups',
+                  subtitle: 'Schools, colleges, offices and communities. Data is kept separate by group: each leader sees only their own'),
               Card(
                 child: Column(
                   children: [
@@ -164,12 +169,12 @@ class ManagerOverviewScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SectionHeader('Activity this week', subtitle: 'Actions that earned points, all schools'),
+              const SectionHeader('Activity this week', subtitle: 'Actions that earned points, all groups'),
               Panel(
                 child: AqChart(
                   data: weekData,
                   line: true,
-                  summary: 'Line chart of activity across all schools over the last 7 days: '
+                  summary: 'Line chart of activity across all groups over the last 7 days: '
                       '${weekData.map((d) => '${d.longLabel}: ${d.value!.round()}').join(', ')}.',
                 ),
               ),
@@ -177,7 +182,7 @@ class ManagerOverviewScreen extends StatelessWidget {
               StatStrip(items: [
                 StatItem('Earned', Fmt.number(totals.issued), icon: Icons.add_circle_outline),
                 StatItem('Redeemed', Fmt.number(totals.redeemed), icon: Icons.redeem_outlined),
-                StatItem('Held by students', Fmt.number(totals.issued - totals.redeemed), icon: Icons.savings_outlined),
+                StatItem('Held by members', Fmt.number(totals.issued - totals.redeemed), icon: Icons.savings_outlined),
               ]),
               SectionHeader('Audit log', subtitle: 'Sign-ins, lockouts, broadcasts and changes',
                   action: 'View all', onAction: () => showAuditLog(context)),
@@ -205,9 +210,14 @@ class _SchoolRow extends StatelessWidget {
     final risk = roster.where((e) => e.profile.isClaimed && e.atRisk).length;
     final edu = store.accountById(room.educatorId);
     return ListTile(
-      leading: const CircleAvatar(child: Icon(Icons.school_outlined)),
+      leading: CircleAvatar(
+        child: Icon(kindIcon(room.kind)),
+      ),
       title: Text(room.school),
-      subtitle: Text('${room.code} · ${edu?.name ?? 'No educator'} · ${Fmt.plural(roster.length, 'student')} · $avg% quiz average'),
+      subtitle: Text(
+        '${room.kind.label} · ${room.code} · ${edu?.name ?? 'No ${room.kind.leaderNoun} yet'} · '
+        '${Fmt.plural(roster.length, room.kind.memberNoun)} · $avg% quiz average',
+      ),
       trailing: risk > 0 ? Pill('$risk at risk', tone: Tone.warning) : null,
       onTap: () => context.go('/manager/directory'),
     );
@@ -291,7 +301,7 @@ class _AuditLogSheetState extends State<_AuditLogSheet> {
             children: [
               Semantics(header: true, child: Text('Audit log', style: Theme.of(context).textTheme.titleLarge)),
               const SizedBox(height: 4),
-              Text('The latest 60 events on this device. Students’ messages are never logged.',
+              Text('The latest 60 events on this device. Private messages are never logged.',
                   style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 12),
               TextField(
@@ -315,8 +325,8 @@ class _AuditLogSheetState extends State<_AuditLogSheet> {
 // ================================================================== DIRECTORY
 
 enum _Dir {
-  students('Students', Icons.school_outlined),
-  educators('Educators', Icons.co_present_outlined),
+  students('Members', Icons.groups_outlined),
+  educators('Leaders', Icons.co_present_outlined),
   ngos('NGOs', Icons.volunteer_activism_outlined);
 
   const _Dir(this.label, this.icon);
@@ -398,7 +408,7 @@ class _ManagerDirectoryScreenState extends State<ManagerDirectoryScreen> {
                   contentPadding: EdgeInsets.zero,
                   value: _riskOnly,
                   onChanged: (v) => setState(() => _riskOnly = v),
-                  title: const Text('Only students who may need support'),
+                  title: const Text('Only people who may need support'),
                 ),
               const SizedBox(height: 4),
               Semantics(
@@ -465,7 +475,7 @@ class _ManagerStudentSheetState extends State<_ManagerStudentSheet> {
       listenable: s.store,
       builder: (context, _) {
         final p = s.store.studentById(widget.studentId);
-        if (p == null) return const SizedBox(height: 120, child: Center(child: Text('Student not found.')));
+        if (p == null) return const SizedBox(height: 120, child: Center(child: Text('This person was not found.')));
         final sum = s.store.summaryOf(p);
         final room = s.store.classByCode(p.classCode);
         final others = s.store.classes.where((c) => c.code != p.classCode).toList();
@@ -513,7 +523,7 @@ class _ManagerStudentSheetState extends State<_ManagerStudentSheet> {
                         onPressed: () async {
                           final ok = await confirmAction(context,
                               title: 'Show phone number?',
-                              message: 'Viewing a student’s number is recorded in the audit log.',
+                              message: 'Viewing someone’s number is recorded in the audit log.',
                               confirmLabel: 'Show');
                           if (!ok || !mounted) return;
                           setState(() => _revealed = true);
@@ -523,12 +533,12 @@ class _ManagerStudentSheetState extends State<_ManagerStudentSheet> {
                       ),
               ),
               const Divider(height: 28),
-              Semantics(header: true, child: Text('Move to another school', style: text.titleMedium)),
+              Semantics(header: true, child: Text('Move to another group', style: text.titleMedium)),
               const SizedBox(height: 4),
-              Text('Points, badges and quiz history move with the student.', style: text.bodySmall),
+              Text('Points, badges and quiz history move with them.', style: text.bodySmall),
               const SizedBox(height: 10),
               if (others.isEmpty)
-                Text('There is no other class to move to yet.', style: text.bodyMedium)
+                Text('There is no other group to move to yet.', style: text.bodyMedium)
               else ...[
                 DropdownButtonFormField<String>(
                   // initialValue is read once; rebuild the field when the
@@ -536,7 +546,7 @@ class _ManagerStudentSheetState extends State<_ManagerStudentSheet> {
                   key: ValueKey('move-${p.classCode}'),
                   initialValue: target,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'New class', prefixIcon: Icon(Icons.swap_horiz)),
+                  decoration: const InputDecoration(labelText: 'New group', prefixIcon: Icon(Icons.swap_horiz)),
                   items: [
                     for (final c in others)
                       DropdownMenuItem(value: c.code, child: Text('${c.school} (${c.code})', overflow: TextOverflow.ellipsis)),
@@ -555,7 +565,7 @@ class _ManagerStudentSheetState extends State<_ManagerStudentSheet> {
                           final ok = await confirmAction(context,
                               title: 'Move ${p.name}?',
                               message: 'From ${p.classCode} to ${dest?.school ?? target}. '
-                                  'Their new educator will see them straight away.',
+                                  'Their new ${dest?.kind.leaderNoun ?? 'leader'} will see them straight away.',
                               confirmLabel: 'Move');
                           if (!ok || !context.mounted) return;
                           try {
@@ -601,10 +611,11 @@ class _EducatorTile extends StatelessWidget {
     final code = account.classCode;
     final roster = code == null ? 0 : s.store.studentsIn(code).length;
     final sent = s.store.sentBy(account.id).length;
+    final k = s.store.kindOf(code);
     return ListTile(
       leading: CircleAvatar(child: Text(_initials(account.name))),
       title: Text(account.name),
-      subtitle: Text('${account.school ?? 'No school'} · ${code ?? '—'} · ${Fmt.plural(roster, 'student')}'),
+      subtitle: Text('${k.leaderTitle} · ${account.school ?? 'No group yet'} · ${code ?? '—'} · ${Fmt.plural(roster, k.memberNoun)}'),
       onTap: () => showModalBottomSheet<void>(
         context: context,
         useSafeArea: true,
@@ -620,9 +631,9 @@ class _EducatorTile extends StatelessWidget {
                 Text(account.school ?? '', style: text.bodyMedium),
                 const SizedBox(height: 12),
                 StatStrip(items: [
-                  StatItem('Students', '$roster'),
+                  StatItem(k.membersTitle, '$roster'),
                   StatItem('Announcements', '$sent'),
-                  StatItem('Class code', code ?? '—'),
+                  StatItem(k.codeLabel, code ?? '—'),
                 ]),
                 const SizedBox(height: 8),
                 ListTile(

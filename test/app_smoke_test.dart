@@ -150,8 +150,12 @@ void main() {
     expect(find.text(AppInfo.author), findsOneWidget);
     expect(find.text(AppInfo.missionTitle), findsWidgets);
     expect(find.text(AppInfo.mission.last), findsOneWidget);
-    expect(find.text(AppInfo.copyright), findsOneWidget);
+    // Further down the page, as a reader would scroll.
+    final page = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.text('Office'), 300, scrollable: page);
     expect(find.text('Office'), findsOneWidget, reason: 'the page lists every kind of group');
+    await tester.scrollUntilVisible(find.text(AppInfo.copyright), 300, scrollable: page);
+    expect(find.text(AppInfo.copyright), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
